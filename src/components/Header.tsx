@@ -1,9 +1,18 @@
 // import { Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
+import { useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Bike, MessageCircle } from "lucide-react";
 
 export default function Header() {
+    const [comingSoon, setComingSoon] = useState(false);
+
+    function handleTryNow() {
+        setComingSoon(true);
+        // Show "Coming soon" briefly
+        setTimeout(() => setComingSoon(false), 2000);
+    }
+
     return (
         <>
             {/* Header */}
@@ -33,9 +42,9 @@ export default function Header() {
                     </nav>
                     <div className="flex gap-2">
                         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                            <Button className="gap-2">
+                            <Button className="gap-2" onClick={handleTryNow} disabled={comingSoon}>
                                 <MessageCircle className="h-4 w-4" />
-                                Try Now
+                                {comingSoon ? "Coming soon" : "Try Now"}
                             </Button>
                         </motion.div>
 
