@@ -13,12 +13,6 @@ export default defineConfig({
         globals: true,
         environment: "jsdom",
     },
-    build: {
-        rollupOptions: {
-            input: "index.html",
-        },
-        ssr: false, // 👈 make sure SSR is disabled
-    },
     resolve: {
         alias: {
             "@": resolve(__dirname, "./src"),
