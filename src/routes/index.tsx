@@ -152,7 +152,7 @@ function LandingPage() {
     return (
         <div className="flex flex-col min-h-screen max-w-[1920px] mx-auto">
             {/* Hero Section */}
-            <section className="relative overflow-hidden bg-gradient-to-b from-secondary/20 to-background py-20 md:py-32">
+            <section className="relative overflow-hidden  py-20 md:py-32">
                 <div className="container mx-auto px-4">
                     <div className="grid lg:grid-cols-2 gap-12 items-center">
                         <motion.div initial="hidden" animate="visible" variants={staggerContainer} className="space-y-8">

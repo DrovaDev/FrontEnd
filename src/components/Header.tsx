@@ -1,6 +1,6 @@
 // import { Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Bike, MessageCircle } from "lucide-react";
 
 export default function Header() {
@@ -38,11 +38,15 @@ export default function Header() {
                                 Try Now
                             </Button>
                         </motion.div>
+
                         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                            <Button className="gap-2" variant="ghost">
-                                {/* <MessageCircle className="h-4 w-4" /> */}
+                            <a
+                                href="https://docs.google.com/forms/d/e/1FAIpQLSfY2JH5IuPygrrjdgvSR8Wwu6Bh9aPIsOuVdl-BsY6fR6jFBw/viewform?usp=dialog"
+                                className={`${buttonVariants({ variant: "ghost" })}`}
+                                target="_blank"
+                                rel="noreferrer">
                                 Join Waitlist
-                            </Button>
+                            </a>
                         </motion.div>
                     </div>
                 </div>
