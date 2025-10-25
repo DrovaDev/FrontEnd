@@ -3,9 +3,11 @@ import { motion } from "motion/react";
 import { useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { MessageCircle } from "lucide-react";
+import { useScrollDirection } from "@/hooks/useScrollDirection";
 
 export default function Header() {
     const [comingSoon, setComingSoon] = useState(false);
+    const scrollDirection = useScrollDirection();
 
     function handleTryNow() {
         setComingSoon(true);
@@ -18,7 +20,7 @@ export default function Header() {
             {/* Header */}
             <motion.header
                 initial={{ y: -20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
+                animate={{ y: scrollDirection === "up" ? 0 : -100, opacity: scrollDirection === "up" ? 1 : 0 }}
                 transition={{ duration: 0.6, ease: "easeOut" }}
                 className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                 <div className="container flex h-16 items-center justify-between mx-auto px-4">
