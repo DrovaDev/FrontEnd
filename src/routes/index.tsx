@@ -830,10 +830,7 @@ function LandingPage() {
                 <div className="container mx-auto px-4">
                     <div className="grid md:grid-cols-4 gap-8">
                         <div className="space-y-4">
-                            <div className="flex items-center gap-2">
-                                <Bike className="h-6 w-6 text-primary" />
-                                <span className="font-bold text-xl">Drova</span>
-                            </div>
+                            <img src="/logo.png" alt="Drova web logo" className="w-20" />
                             <p className="text-sm text-muted-foreground leading-relaxed">
                                 Africa's most reliable eco-friendly bicycle delivery network. Fast, affordable, and sustainable.
                             </p>
