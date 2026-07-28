@@ -870,7 +870,7 @@ function LandingPage() {
                                 </li>
                                 <li>
                                     <a href="#riders" className="hover:text-primary transition-colors">
-                                        Become a Rider
+                                        For Consumers
                                     </a>
                                 </li>
                                 <li>

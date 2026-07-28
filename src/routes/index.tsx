@@ -87,7 +87,7 @@ export default function Index() {
 
                         {/* Sub */}
                         <motion.p variants={fadeInUp} className="text-xl text-white/70 leading-relaxed max-w-2xl mb-10">
-                            Drova gives your courier company a branded storefront, smart dashboard, P2P-secured payments, and real-time rider tracking
+                            Drova gives your courier company a branded storefront, smart dashboard, Escrow-secured payments, and real-time rider tracking
                             — with zero technical setup required.
                         </motion.p>
 
@@ -116,7 +116,7 @@ export default function Index() {
                         <motion.div variants={fadeInUp} className="flex items-center gap-8 mt-14 pt-8 border-t border-white/15">
                             {[
                                 { value: "Zero", label: "Technical Setup" },
-                                { value: "P2P", label: "Secured Payments" },
+                                { value: "Escrow", label: "Secured Payments" },
                                 { value: "Real-time", label: "Rider Tracking" },
                             ].map((stat) => (
                                 <div key={stat.label}>
@@ -192,7 +192,7 @@ export default function Index() {
                                 {[
                                     "Structured order management dashboard",
                                     "Branded storefront with online booking",
-                                    "P2P-secured payments",
+                                    "Escrow-secured payments",
                                     "Real-time GPS rider tracking",
                                     "Verified ratings and review system",
                                     "Full business analytics dashboard",
@@ -258,11 +258,11 @@ export default function Index() {
                             },
                             {
                                 icon: Shield,
-                                title: "P2P Payments",
+                                title: "Escrow Payments",
                                 description:
                                     "Money moves directly between customer and business — held by Drova until delivery is confirmed. No middleman delays, no cash disputes, no trust issues.",
                                 features: [
-                                    "Paystack-powered P2P escrow",
+                                    "Paystack-powered Escrow escrow",
                                     "Photo proof required on delivery",
                                     "Auto-release after 2-hour window",
                                     "Structured dispute resolution (48hr SLA)",
@@ -273,7 +273,7 @@ export default function Index() {
                                 icon: Smartphone,
                                 title: "Rider Mobile App",
                                 description:
-                                    "A lightweight React Native app your riders will actually use — built for low-data environments and entry-level Android phones.",
+                                    "A lightweight app built for low-data environments and entry-level Android phones.",
                                 features: [
                                     "One-tap Online / Offline toggle",
                                     "Google Maps navigation built-in",
@@ -359,7 +359,7 @@ export default function Index() {
                                 icon: Package,
                                 title: "Start Taking Orders",
                                 description:
-                                    "Share your storefront link. Customers book online, pay via P2P, and your riders are dispatched with step-by-step navigation.",
+                                    "Share your storefront link. Customers book online, pay via Escrow, and your riders are dispatched with step-by-step navigation.",
                             },
                         ].map((item, i) => (
                             <motion.div key={item.step} variants={fadeInUp} className="relative text-center">
@@ -412,7 +412,7 @@ export default function Index() {
                                 features: [
                                     "Up to 5 riders",
                                     "100 orders / month",
-                                    "20% platform commission",
+                                    "2.5% platform commission",
                                     "Subdomain storefront",
                                     "Basic analytics",
                                     "Weekly payouts",
@@ -429,7 +429,7 @@ export default function Index() {
                                 features: [
                                     "Up to 25 riders",
                                     "2,000 orders / month",
-                                    "15% platform commission",
+                                    "2.5% platform commission",
                                     "Subdomain + custom domain",
                                     "Advanced analytics",
                                     "Daily payouts",
@@ -447,7 +447,7 @@ export default function Index() {
                                 features: [
                                     "Unlimited riders",
                                     "Unlimited orders",
-                                    "10% commission (negotiable)",
+                                    "2.5% platform commission",
                                     "Subdomain + custom domain",
                                     "Full analytics + data export",
                                     "Real-time payouts",
@@ -555,7 +555,7 @@ export default function Index() {
                                 How It Works
                             </a>
                             <a href="#riders" className="hover:text-accent transition-colors">
-                                Become a Rider
+                                For Consumers
                             </a>
                             <a href="mailto:product@drova.ng" className="hover:text-accent transition-colors">
                                 Contact

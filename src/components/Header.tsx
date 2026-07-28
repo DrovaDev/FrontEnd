@@ -42,7 +42,7 @@ export default function Header() {
                     {[
                         { label: "Services", href: "#services" },
                         { label: "How It Works", href: "#how-it-works" },
-                        { label: "Become a Rider", href: "#riders" },
+                        { label: "For consumers", href: "#riders" },
                     ].map((link) => (
                         <a
                             key={link.href}
