@@ -328,7 +328,7 @@ function LandingPage() {
                             </motion.div>
                         </motion.div>
 
-                        {/* For Consumers */}
+                        {/* Marketplace */}
                         <motion.div variants={scaleIn}>
                             <motion.div whileHover={{ y: -8, transition: { duration: 0.3 } }}>
                                 <Card className="overflow-hidden border-2 h-full">
@@ -869,8 +869,8 @@ function LandingPage() {
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="#riders" className="hover:text-primary transition-colors">
-                                        For Consumers
+                                    <a href="#marketplace" className="hover:text-primary transition-colors">
+                                        Marketplace
                                     </a>
                                 </li>
                                 <li>

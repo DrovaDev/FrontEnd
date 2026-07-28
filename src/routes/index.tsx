@@ -554,8 +554,8 @@ export default function Index() {
                             <a href="#how-it-works" className="hover:text-accent transition-colors">
                                 How It Works
                             </a>
-                            <a href="#riders" className="hover:text-accent transition-colors">
-                                For Consumers
+                            <a href="#marketplace" className="hover:text-accent transition-colors">
+                                Marketplace
                             </a>
                             <a href="mailto:product@drova.ng" className="hover:text-accent transition-colors">
                                 Contact
