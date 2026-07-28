@@ -1,28 +1,30 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { motion, useInView } from "motion/react";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import ParticleBackground from "@/components/ParticleBackground";
+import HeroWebGLBackground from "@/components/HeroWebGLBackground";
 import {
     LayoutDashboard,
     Store,
     Shield,
     Smartphone,
-    MapPin,
     CheckCircle,
     ArrowRight,
     Zap,
     Users,
     Package,
-    Clock,
     Star,
     ChevronRight,
-    Bike,
     Building2,
     X,
     Check,
+    Search,
+    CreditCard,
 } from "lucide-react";
+import { gsap } from "gsap";
 
 export const Route = createFileRoute("/")({
     component: Index,
@@ -62,14 +64,41 @@ function AnimatedSection({ children, className = "" }: { children: React.ReactNo
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function Index() {
+    const heroContentRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        // Parallax effect for hero section
+        const handleMouseMove = (e: MouseEvent) => {
+            if (!heroContentRef.current) return;
+            
+            const x = (e.clientX / window.innerWidth - 0.5) * 20;
+            const y = (e.clientY / window.innerHeight - 0.5) * 20;
+            
+            gsap.to(heroContentRef.current, {
+                x: x,
+                y: y,
+                duration: 1,
+                ease: 'power2.out',
+            });
+        };
+
+        window.addEventListener('mousemove', handleMouseMove);
+
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+        };
+    }, []);
+
     return (
         <main className="flex flex-col overflow-hidden">
             {/* ── HERO ─────────────────────────────────────────────────────── */}
             <section className="min-h-screen bg-[url('/hero-bg.jpg')] bg-cover bg-center flex items-center relative">
+                <HeroWebGLBackground />
                 <div className="absolute inset-0 bg-linear-to-br from-primary/92 via-primary/82 to-black/90" />
 
                 <div className="relative z-10 container mx-auto px-6 py-36 max-w-7xl">
-                    <motion.div initial="hidden" animate="visible" variants={staggerContainer} className="max-w-3xl">
+                    <div ref={heroContentRef} className="max-w-3xl">
+                        <motion.div initial="hidden" animate="visible" variants={staggerContainer}>
                         {/* Label */}
                         <motion.div variants={fadeInUp}>
                             <Badge className="mb-6 gap-2 bg-accent/15 text-accent border-accent/35 backdrop-blur-sm">
@@ -125,7 +154,8 @@ export default function Index() {
                                 </div>
                             ))}
                         </motion.div>
-                    </motion.div>
+                        </motion.div>
+                    </div>
                 </div>
 
                 {/* Scroll cue */}
@@ -380,6 +410,499 @@ export default function Index() {
                             </motion.div>
                         ))}
                     </motion.div>
+                </div>
+            </section>
+
+            {/* ── MARKETPLACE ──────────────────────────────────────────────── */}
+            <section id="marketplace" className="py-32 bg-gradient-to-b from-primary via-primary to-black relative overflow-hidden">
+                {/* WebGL Particle Background */}
+                <ParticleBackground />
+
+                {/* Animated background orbs */}
+                <motion.div
+                    animate={{
+                        scale: [1, 1.2, 1],
+                        opacity: [0.3, 0.5, 0.3],
+                    }}
+                    transition={{ repeat: Infinity, duration: 8, ease: "easeInOut" }}
+                    className="absolute top-20 left-10 w-96 h-96 bg-accent/10 rounded-full blur-3xl"
+                />
+                <motion.div
+                    animate={{
+                        scale: [1, 1.3, 1],
+                        opacity: [0.2, 0.4, 0.2],
+                    }}
+                    transition={{ repeat: Infinity, duration: 10, ease: "easeInOut", delay: 1 }}
+                    className="absolute bottom-20 right-10 w-80 h-80 bg-accent/8 rounded-full blur-3xl"
+                />
+                <motion.div
+                    animate={{
+                        y: [0, -30, 0],
+                        x: [0, 20, 0],
+                    }}
+                    transition={{ repeat: Infinity, duration: 12, ease: "easeInOut" }}
+                    className="absolute top-1/3 right-1/4 w-64 h-64 bg-gradient-to-br from-accent/5 to-transparent rounded-full blur-2xl"
+                />
+
+                <div className="container mx-auto px-6 max-w-7xl relative z-10">
+                    <AnimatedSection className="text-center mb-24">
+                        <motion.div
+                            animate={{ y: [0, -8, 0] }}
+                            transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+                            className="inline-block mb-8">
+                            <Badge className="gap-2 bg-accent/15 text-accent border-accent/35 backdrop-blur-sm px-4 py-2">
+                                <Store className="h-3 w-3" />
+                                Consumer Marketplace
+                            </Badge>
+                        </motion.div>
+                        <h2 className="text-5xl md:text-7xl font-black text-white text-balance mb-6 leading-tight">
+                            Get Discovered on the
+                            <br />
+                            <motion.span
+                                animate={{
+                                    backgroundPosition: ["0%", "100%", "0%"],
+                                }}
+                                transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
+                                className="text-transparent bg-clip-text bg-gradient-to-r from-accent via-green-300 to-accent bg-[length:200%_auto]">
+                                Drova Marketplace
+                            </motion.span>
+                        </h2>
+                        <p className="text-xl md:text-2xl text-white/50 max-w-3xl mx-auto font-light">
+                            Where customers find you, trust you, and book you — in seconds
+                        </p>
+                    </AnimatedSection>
+
+                    {/* Interactive Feature Grid */}
+                    <div className="grid lg:grid-cols-3 gap-6 max-w-6xl mx-auto mb-24">
+                        {[
+                            {
+                                icon: Users,
+                                title: "Steady Stream",
+                                desc: "Active customers, daily",
+                                gradient: "from-blue-500/20 to-cyan-500/20",
+                                iconGradient: "from-blue-400 to-cyan-400",
+                            },
+                            {
+                                icon: Shield,
+                                title: "Escrow Trust",
+                                desc: "Secure payments, zero risk",
+                                gradient: "from-purple-500/20 to-pink-500/20",
+                                iconGradient: "from-purple-400 to-pink-400",
+                            },
+                            {
+                                icon: Zap,
+                                title: "Scale Fast",
+                                desc: "More orders, more revenue",
+                                gradient: "from-orange-500/20 to-yellow-500/20",
+                                iconGradient: "from-orange-400 to-yellow-400",
+                            },
+                        ].map((feature, i) => (
+                            <div
+                                key={feature.title}
+                                ref={(el) => {
+                                    if (el) {
+                                        gsap.fromTo(el, 
+                                            { opacity: 0, y: 60, scale: 0.9 },
+                                            {
+                                                opacity: 1,
+                                                y: 0,
+                                                scale: 1,
+                                                duration: 0.8,
+                                                delay: i * 0.2,
+                                                ease: "back.out(1.7)",
+                                                scrollTrigger: {
+                                                    trigger: el,
+                                                    start: "top 80%",
+                                                    toggleActions: "play none none reverse",
+                                                }
+                                            }
+                                        );
+                                    }
+                                }}
+                                className="group relative">
+                                <motion.div
+                                    className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl blur-xl"
+                                    style={{ background: feature.gradient }}
+                                />
+                                <div className="relative bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 group-hover:border-white/20 transition-all duration-300">
+                                    <motion.div
+                                        animate={{ rotate: [0, 5, -5, 0] }}
+                                        transition={{ repeat: Infinity, duration: 4, ease: "easeInOut", delay: i * 0.5 }}
+                                        className="h-16 w-16 rounded-2xl bg-gradient-to-br flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
+                                        style={{ background: feature.gradient }}>
+                                        <feature.icon className="h-8 w-8 text-white" />
+                                    </motion.div>
+                                    <h3 className="text-2xl font-bold text-white mb-2">{feature.title}</h3>
+                                    <p className="text-white/50">{feature.desc}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Interactive Demo */}
+                    <div
+                        ref={(el) => {
+                            if (el) {
+                                gsap.fromTo(el,
+                                    { opacity: 0, scale: 0.9, rotationX: 10 },
+                                    {
+                                        opacity: 1,
+                                        scale: 1,
+                                        rotationX: 0,
+                                        duration: 1,
+                                        ease: "power3.out",
+                                        scrollTrigger: {
+                                            trigger: el,
+                                            start: "top 80%",
+                                            toggleActions: "play none none reverse",
+                                        }
+                                    }
+                                );
+                            }
+                        }}
+                        className="relative max-w-5xl mx-auto">
+                        {/* Glow effect */}
+                        <motion.div
+                            animate={{
+                                opacity: [0.3, 0.6, 0.3],
+                                scale: [1, 1.1, 1],
+                            }}
+                            transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                            className="absolute inset-0 bg-gradient-to-r from-accent/20 via-accent/10 to-accent/20 rounded-3xl blur-2xl"
+                        />
+
+                        <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-2xl rounded-3xl p-8 md:p-12 border border-white/10 overflow-hidden">
+                            {/* Animated particles */}
+                            {[...Array(20)].map((_, i) => (
+                                <motion.div
+                                    key={i}
+                                    animate={{
+                                        y: [0, -100, 0],
+                                        opacity: [0, 1, 0],
+                                    }}
+                                    transition={{
+                                        repeat: Infinity,
+                                        duration: 3 + Math.random() * 2,
+                                        delay: Math.random() * 2,
+                                        ease: "easeOut",
+                                    }}
+                                    className="absolute w-1 h-1 bg-accent/50 rounded-full"
+                                    style={{
+                                        left: `${Math.random() * 100}%`,
+                                        top: `${Math.random() * 100}%`,
+                                    }}
+                                />
+                            ))}
+
+                            <div className="grid md:grid-cols-2 gap-8 md:gap-16 items-center relative z-10">
+                                {/* Customer Side */}
+                                <motion.div
+                                    whileHover={{ scale: 1.02 }}
+                                    className="relative group">
+                                    <div className="absolute inset-0 bg-gradient-to-r from-accent/20 to-transparent rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <div className="relative bg-gradient-to-br from-white/15 to-white/5 rounded-2xl p-6 border border-white/10">
+                                        <div className="flex items-center gap-4 mb-6">
+                                            <motion.div
+                                                animate={{ rotate: [0, 360] }}
+                                                transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
+                                                className="h-14 w-14 rounded-full bg-gradient-to-br from-accent/30 to-accent/10 flex items-center justify-center">
+                                                <Smartphone className="h-7 w-7 text-accent" />
+                                            </motion.div>
+                                            <div>
+                                                <h4 className="text-xl font-bold text-white">Customer</h4>
+                                                <p className="text-sm text-white/40">Searching now</p>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-4">
+                                            <motion.div
+                                                animate={{ x: [0, 5, 0] }}
+                                                transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                                                className="flex items-center gap-3 p-4 rounded-xl bg-white/5 border border-white/10">
+                                                <Search className="h-5 w-5 text-white/30" />
+                                                <span className="text-white/50 text-sm">Find delivery near me...</span>
+                                            </motion.div>
+                                            <motion.div
+                                                animate={{
+                                                    scale: [1, 1.02, 1],
+                                                    boxShadow: [
+                                                        "0 0 0 rgba(120,255,120,0)",
+                                                        "0 0 20px rgba(120,255,120,0.3)",
+                                                        "0 0 0 rgba(120,255,120,0)",
+                                                    ],
+                                                }}
+                                                transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                                                className="flex items-center gap-3 p-4 rounded-xl bg-accent/10 border border-accent/30">
+                                                <Star className="h-5 w-5 text-accent" />
+                                                <div className="flex-1">
+                                                    <div className="text-white font-medium">Your Business</div>
+                                                    <div className="text-accent/70 text-xs">4.9 ⭐ • Available</div>
+                                                </div>
+                                                <motion.div
+                                                    animate={{ scale: [1, 1.2, 1] }}
+                                                    transition={{ repeat: Infinity, duration: 1.5 }}
+                                                    className="h-2 w-2 rounded-full bg-accent"
+                                                />
+                                            </motion.div>
+                                        </div>
+                                    </div>
+                                </motion.div>
+
+                                {/* Animated Connection */}
+                                <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center justify-center">
+                                    <motion.div
+                                        animate={{ x: [-10, 10, -10] }}
+                                        transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                                        className="flex items-center gap-2">
+                                        {[...Array(3)].map((_, i) => (
+                                            <motion.div
+                                                key={i}
+                                                animate={{
+                                                    scale: [1, 1.5, 1],
+                                                    opacity: [0.5, 1, 0.5],
+                                                }}
+                                                transition={{
+                                                    repeat: Infinity,
+                                                    duration: 1.5,
+                                                    delay: i * 0.2,
+                                                    ease: "easeInOut",
+                                                }}
+                                                className="w-2 h-2 rounded-full bg-accent"
+                                            />
+                                        ))}
+                                    </motion.div>
+                                </div>
+
+                                {/* Business Side */}
+                                <motion.div
+                                    whileHover={{ scale: 1.02 }}
+                                    className="relative group">
+                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent to-accent/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <div className="relative bg-gradient-to-br from-accent/15 to-accent/5 rounded-2xl p-6 border border-accent/30">
+                                        <div className="flex items-center gap-4 mb-6">
+                                            <motion.div
+                                                animate={{ rotate: [0, -360] }}
+                                                transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
+                                                className="h-14 w-14 rounded-full bg-gradient-to-br from-accent/40 to-accent/20 flex items-center justify-center">
+                                                <LayoutDashboard className="h-7 w-7 text-accent" />
+                                            </motion.div>
+                                            <div>
+                                                <h4 className="text-xl font-bold text-white">Your Dashboard</h4>
+                                                <p className="text-sm text-accent/70">Receiving orders</p>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-4">
+                                            <motion.div
+                                                animate={{
+                                                    y: [0, -5, 0],
+                                                    backgroundColor: ["rgba(120,255,120,0.1)", "rgba(120,255,120,0.2)", "rgba(120,255,120,0.1)"],
+                                                }}
+                                                transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                                                className="flex items-center gap-3 p-4 rounded-xl bg-accent/20 border border-accent/40">
+                                                <motion.div
+                                                    animate={{ scale: [1, 1.3, 1] }}
+                                                    transition={{ repeat: Infinity, duration: 1 }}
+                                                    className="h-3 w-3 rounded-full bg-green-400"
+                                                />
+                                                <div className="flex-1">
+                                                    <div className="text-white font-medium">New Order!</div>
+                                                    <div className="text-white/50 text-xs">Lagos → Ikeja • ₦2,500</div>
+                                                </div>
+                                                <Zap className="h-5 w-5 text-accent" />
+                                            </motion.div>
+                                            <div className="flex items-center gap-3 p-4 rounded-xl bg-white/5 border border-white/10">
+                                                <div className="h-3 w-3 rounded-full bg-white/30" />
+                                                <div className="flex-1">
+                                                    <div className="text-white/70 font-medium">Order #2846</div>
+                                                    <div className="text-white/40 text-xs">In Progress</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* CTA */}
+                    <div
+                        ref={(el) => {
+                            if (el) {
+                                gsap.fromTo(el,
+                                    { opacity: 0, y: 30 },
+                                    {
+                                        opacity: 1,
+                                        y: 0,
+                                        duration: 0.8,
+                                        delay: 0.4,
+                                        ease: "power3.out",
+                                        scrollTrigger: {
+                                            trigger: el,
+                                            start: "top 85%",
+                                            toggleActions: "play none none reverse",
+                                        }
+                                    }
+                                );
+                            }
+                        }}
+                        className="text-center mt-20">
+                        <motion.div
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="inline-block relative">
+                            <motion.div
+                                animate={{
+                                    boxShadow: [
+                                        "0 0 0 rgba(120,255,120,0)",
+                                        "0 0 30px rgba(120,255,120,0.4)",
+                                        "0 0 0 rgba(120,255,120,0)",
+                                    ],
+                                }}
+                                transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                                className="absolute inset-0 bg-accent rounded-full blur-xl"
+                            />
+                            <a
+                                href={WAITLIST_URL}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="relative inline-flex items-center gap-3 px-10 py-4 bg-accent text-primary font-bold text-lg rounded-full hover:bg-accent/90 transition-colors">
+                                Join the Marketplace
+                                <motion.div
+                                    animate={{ x: [0, 5, 0] }}
+                                    transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}>
+                                    <ArrowRight className="h-5 w-5" />
+                                </motion.div>
+                            </a>
+                        </motion.div>
+                    </div>
+                </div>
+            </section>
+
+            {/* ── HOW ESCROW PROTECTS YOU ─────────────────────────────────── */}
+            <section className="py-24 bg-muted/30 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-accent/5 to-transparent" />
+                <div className="container mx-auto px-6 max-w-7xl relative z-10">
+                    <AnimatedSection className="text-center mb-16">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            whileInView={{ opacity: 1, scale: 1 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.6 }}
+                            className="inline-block mb-4"
+                        >
+                            <Badge className="gap-2 bg-accent/15 text-accent border-accent/35 backdrop-blur-sm px-4 py-2">
+                                <Shield className="h-4 w-4" />
+                                How Escrow Protects You
+                            </Badge>
+                        </motion.div>
+                        <h2 className="text-4xl md:text-5xl font-black text-balance mb-4">
+                            Never argue over a payment again
+                        </h2>
+                        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                            You get paid for every completed delivery, guaranteed.
+                        </p>
+                    </AnimatedSection>
+
+                    <motion.div
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true, margin: "-80px" }}
+                        variants={staggerContainer}
+                        className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto relative">
+                        {[
+                            {
+                                step: "Step 1",
+                                title: "Customer pays online",
+                                description: "Funds locked safely in Drova Escrow",
+                                icon: <CreditCard className="h-8 w-8" />,
+                                gradient: "from-blue-500/10 to-blue-600/5",
+                            },
+                            {
+                                step: "Step 2",
+                                title: "Rider delivers package",
+                                description: "Rider uploads PIN after delivery",
+                                icon: <Package className="h-8 w-8" />,
+                                gradient: "from-purple-500/10 to-purple-600/5",
+                            },
+                            {
+                                step: "Step 3",
+                                title: "Funds released",
+                                description: "Money sent to your wallet after 24 hours without dispute",
+                                icon: <Shield className="h-8 w-8" />,
+                                gradient: "from-green-500/10 to-green-600/5",
+                            },
+                        ].map((item, index) => (
+                            <motion.div
+                                key={item.step}
+                                variants={fadeInUp}
+                                whileHover={{ y: -8, scale: 1.02 }}
+                                transition={{ type: "spring", stiffness: 300 }}
+                                className="relative"
+                            >
+                                <Card className={`h-full bg-gradient-to-br ${item.gradient} backdrop-blur-sm border-2 border-border hover:border-accent/50 transition-all duration-300 relative overflow-hidden group`}>
+                                    <motion.div
+                                        className="absolute top-0 right-0 w-32 h-32 bg-accent/10 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                                        animate={{
+                                            scale: [1, 1.2, 1],
+                                            opacity: [0.3, 0.5, 0.3],
+                                        }}
+                                        transition={{
+                                            duration: 3,
+                                            repeat: Infinity,
+                                            ease: "easeInOut",
+                                        }}
+                                    />
+                                    <CardContent className="p-8 relative">
+                                        <div className="flex items-center justify-between mb-6">
+                                            <motion.div
+                                                className="text-sm font-semibold text-accent"
+                                                whileHover={{ scale: 1.1 }}
+                                            >
+                                                {item.step}
+                                            </motion.div>
+                                            <motion.div
+                                                className="h-12 w-12 rounded-full bg-gradient-to-br from-accent/20 to-accent/30 flex items-center justify-center text-accent group-hover:scale-110 transition-transform duration-300"
+                                                whileHover={{ rotate: 360 }}
+                                                transition={{ duration: 0.6 }}
+                                            >
+                                                {item.icon}
+                                            </motion.div>
+                                        </div>
+                                        <h3 className="text-xl font-bold mb-3 group-hover:text-accent transition-colors">{item.title}</h3>
+                                        <p className="text-muted-foreground">{item.description}</p>
+                                        {index < 2 && (
+                                            <motion.div
+                                                className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-10"
+                                                animate={{ x: [0, 8, 0] }}
+                                                transition={{
+                                                    duration: 1.5,
+                                                    repeat: Infinity,
+                                                    ease: "easeInOut",
+                                                }}
+                                            >
+                                                <ArrowRight className="h-6 w-6 text-accent" />
+                                            </motion.div>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            </motion.div>
+                        ))}
+                    </motion.div>
+
+                    <AnimatedSection className="text-center mt-12">
+                        <motion.div
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-accent/10 rounded-full border border-accent/20 cursor-pointer"
+                        >
+                            <motion.div
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                            >
+                                <CheckCircle className="h-5 w-5 text-accent" />
+                            </motion.div>
+                            <span className="text-accent font-semibold">Zero payment disputes. Guaranteed payments.</span>
+                        </motion.div>
+                    </AnimatedSection>
                 </div>
             </section>
 
