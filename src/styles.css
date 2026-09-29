@@ -1,4 +1,14 @@
-@import url("https://fonts.googleapis.com/css2?family=Onest:wght@100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@300..800&display=swap");
+
+/* Brand primary typeface (Drova brand guide). Astonpoliz is a licensed font that isn't on
+   Google Fonts: it's used when installed locally, and everywhere once its web font files
+   are added to public/fonts/ and listed in `src` below. Until then headings fall back to
+   Montserrat, the brand's secondary typeface. */
+@font-face {
+    font-family: "Astonpoliz";
+    src: local("Astonpoliz"), local("Astonpoliz Regular");
+    font-display: swap;
+}
 
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -11,7 +21,7 @@ html {
 
 body {
     @apply m-0;
-    font-family: "Onest", sans-serif;
+    font-family: var(--font-sans);
     box-sizing: border-box;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -59,26 +69,50 @@ code {
     --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/* Drova brand palette (brand guide p.7), plus a few tints derived from it. */
+@theme {
+    --font-sans: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+    --font-display: "Astonpoliz", "Montserrat", ui-sans-serif, system-ui, sans-serif;
+
+    --color-forest: #004030; /* primary */
+    --color-lime: #6abd45; /* secondary */
+    --color-emerald: #00a651;
+    --color-gold: #ddc52f;
+    --color-forest-deep: #002b20; /* darker forest, for depth in gradients only */
+    --color-gold-ink: #6b5c00; /* gold text on light gold, for contrast */
+    --color-leaf: #c4f09a;
+    --color-mint: #eaf8df;
+    --color-sage: #5b7a70;
+    --color-app-border: #dde8dc;
+    --color-app-bg: #f5f9f3;
+
+    --animate-pattern-drift: pattern-drift 18s linear infinite;
+    @keyframes pattern-drift {
+        from { -webkit-mask-position: 0 0; mask-position: 0 0; }
+        to { -webkit-mask-position: var(--tile) 0; mask-position: var(--tile) 0; }
+    }
+}
+
 :root {
     --radius: 0.625rem;
     --background: oklch(1 0 0);
-    --foreground: oklch(0.33 0.07 170);
+    --foreground: #004030;
     --card: oklch(1 0 0);
     --card-foreground: oklch(0.33 0.07 170);
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.33 0.07 170);
-    --primary: oklch(0.33 0.07 170);
-    --primary-foreground: oklch(0.984 0.003 247.858);
-    --secondary: oklch(0.72 0.18 137);
+    --primary: #004030;
+    --primary-foreground: #ffffff;
+    --secondary: #6abd45;
     --secondary-foreground: oklch(0.208 0.042 265.755);
     --muted: oklch(0.72 0.18 137);
     --muted-foreground: oklch(0.554 0.046 257.417);
-    --accent: oklch(0.72 0.18 137);
-    --accent-foreground: oklch(0.208 0.042 265.755);
+    --accent: #6abd45;
+    --accent-foreground: #004030;
     --destructive: oklch(0.577 0.245 27.325);
     --border: oklch(0.929 0.013 255.508);
     --input: oklch(0.929 0.013 255.508);
-    --ring: oklch(0.704 0.04 256.788);
+    --ring: #00a651;
     --chart-1: oklch(0.646 0.222 41.116);
     --chart-2: oklch(0.6 0.118 184.704);
     --chart-3: oklch(0.398 0.07 227.392);
@@ -134,5 +168,69 @@ code {
     }
     body {
         @apply bg-background text-foreground;
+    }
+}
+
+/* Slider used by the landing-page price calculator. Set --fill to the filled percentage. */
+.range {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    border-radius: 9999px;
+    background: linear-gradient(to right, #00a651 var(--fill, 0%), #dde8dc var(--fill, 0%));
+    cursor: pointer;
+}
+.range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 9999px;
+    background: #fff;
+    border: 4px solid #00a651;
+    box-shadow: 0 2px 8px rgba(0, 64, 48, 0.25);
+}
+.range::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 9999px;
+    background: #fff;
+    border: 4px solid #00a651;
+    box-shadow: 0 2px 8px rgba(0, 64, 48, 0.25);
+}
+
+/* Headings use the brand's primary typeface. */
+@layer base {
+    h1, h2, h3 {
+        font-family: var(--font-display);
+    }
+}
+
+/* Hide a scroll container's scrollbar while keeping it scrollable (tab bars, rails). */
+.no-scrollbar {
+    scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+/* Phones only: turns a grid of cards into a swipeable rail, with the next card peeking
+   in so it's clear there's more. Desktop keeps the element's own grid classes. */
+@media (max-width: 767px) {
+    .rail {
+        display: flex;
+        gap: 0.875rem;
+        margin-inline: -1.5rem;
+        padding: 1rem 1.5rem 0.75rem; /* top room for badges sitting above a card */
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scroll-padding-inline: 1.5rem;
+        scrollbar-width: none;
+    }
+    .rail::-webkit-scrollbar {
+        display: none;
+    }
+    .rail > * {
+        flex: 0 0 84%;
+        scroll-snap-align: start;
     }
 }

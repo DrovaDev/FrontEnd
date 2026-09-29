@@ -1,1093 +1,878 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { motion, useInView } from "motion/react";
-import { useRef, useEffect } from "react";
-import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import ParticleBackground from "@/components/ParticleBackground";
-import HeroWebGLBackground from "@/components/HeroWebGLBackground";
+import { useState, type ReactNode } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import {
-    LayoutDashboard,
-    Store,
-    Shield,
-    Smartphone,
-    CheckCircle,
     ArrowRight,
-    Zap,
-    Users,
-    Package,
-    Star,
-    ChevronRight,
-    Building2,
-    X,
+    BadgeCheck,
+    Bike,
     Check,
-    Search,
+    ChevronDown,
+    Clock,
     CreditCard,
+    Globe2,
+    Heart,
+    KeyRound,
+    LayoutDashboard,
+    Lock,
+    MapPin,
+    MessageSquareWarning,
+    Package,
+    Radar,
+    RotateCcw,
+    Scale,
+    ShieldCheck,
+    Smartphone,
+    Star,
+    Store,
+    Trophy,
+    UserCog,
+    Wallet,
+    Zap,
 } from "lucide-react";
-import { gsap } from "gsap";
+import { cn } from "@/lib/utils";
+import HeroGlobe from "@/components/three/HeroGlobe";
+import RouteJourney from "@/components/three/RouteJourney";
+import MarketplaceWaves from "@/components/three/MarketplaceWaves";
+import { fadeUp, PhoneFrame, Reveal, SectionHeading, Stagger, WAITLIST_URL } from "@/components/landing/primitives";
+import ProductTour from "@/components/landing/ProductTour";
+import WhyPhones from "@/components/landing/WhyPhones";
+import OpsBento from "@/components/landing/OpsBento";
+import { BrandPattern, Logo } from "@/components/landing/Brand";
+import OrderLifecycle from "@/components/landing/OrderLifecycle";
+import { CustomerCompareScreen, CustomerMarketplaceScreen } from "@/components/landing/CustomerScreens";
+import PriceCalculator from "@/components/landing/PriceCalculator";
+import { RiderOfferScreen, RiderProfileScreen } from "@/components/landing/RiderScreens";
 
 export const Route = createFileRoute("/")({
     component: Index,
 });
 
-const WAITLIST_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfY2JH5IuPygrrjdgvSR8Wwu6Bh9aPIsOuVdl-BsY6fR6jFBw/viewform?usp=dialog";
+// ─── Small building blocks ────────────────────────────────────────────────────
 
-// ─── Animation variants ───────────────────────────────────────────────────────
-
-const fadeInUp = {
-    hidden: { opacity: 0, y: 28 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: "easeIn" } },
-};
-
-const staggerContainer = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.12 } },
-};
-
-const scaleIn = {
-    hidden: { opacity: 0, scale: 0.93 },
-    visible: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: "easeOut" } },
-};
-
-// ─── Shared animated wrapper ──────────────────────────────────────────────────
-
-function AnimatedSection({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-    const ref = useRef(null);
-    const isInView = useInView(ref, { once: true, margin: "-80px" });
+function PrimaryCta({ children = "Join the waitlist", className }: { children?: ReactNode; className?: string }) {
     return (
-        <motion.div ref={ref} initial="hidden" animate={isInView ? "visible" : "hidden"} variants={fadeInUp} className={className}>
+        <motion.a
+            href={WAITLIST_URL}
+            target="_blank"
+            rel="noreferrer"
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            className={cn(
+                "group inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full bg-lime px-7 py-3.5 text-base font-bold text-forest shadow-lg shadow-lime/25 transition-colors hover:bg-lime/90",
+                className,
+            )}>
             {children}
-        </motion.div>
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+        </motion.a>
+    );
+}
+
+function FeatureItem({ children, tone = "light" }: { children: ReactNode; tone?: "light" | "dark" }) {
+    return (
+        <li className="flex gap-3">
+            <span className={cn("mt-0.5 grid size-5 shrink-0 place-items-center rounded-full", tone === "dark" ? "bg-lime/20 text-lime" : "bg-emerald/12 text-emerald")}>
+                <Check className="h-3 w-3" strokeWidth={3} />
+            </span>
+            <span className={tone === "dark" ? "text-white/75" : "text-forest/80"}>{children}</span>
+        </li>
+    );
+}
+
+// ─── Hero ─────────────────────────────────────────────────────────────────────
+
+const HERO_TOASTS = [
+    { icon: Package, title: "New order · Lekki → Yaba", meta: "₦3,200 · paid, held in escrow", tone: "text-gold" },
+    { icon: Bike, title: "Tunde accepted the job", meta: "12 seconds after dispatch", tone: "text-lime" },
+    { icon: KeyRound, title: "Delivered · PIN confirmed", meta: "Payment releases after 24h", tone: "text-emerald" },
+];
+
+const HERO_PROOF = [
+    { icon: ShieldCheck, label: "Escrow on every order", short: "Escrow on every order" },
+    { icon: Radar, label: "Live GPS tracking", short: "Live GPS tracking" },
+    { icon: Globe2, label: "36 states + FCT", short: "36 states + FCT" },
+    { icon: Lock, label: "Payments by Flutterwave & Bachs", short: "Flutterwave & Bachs" },
+];
+
+function Hero() {
+    return (
+        <section className="relative flex min-h-screen items-center overflow-hidden bg-forest">
+            <div className="absolute inset-0 bg-[url('/hero-bg.jpg')] bg-cover bg-center opacity-15 mix-blend-luminosity" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(106,189,69,0.18),transparent_55%),linear-gradient(to_bottom,transparent,#002b20)]" />
+            <HeroGlobe />
+            {/* Phones get the brand pattern instead of the globe */}
+            <div className="lg:hidden">
+                <BrandPattern className="bg-lime/[0.06]" tile={88} />
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(106,189,69,0.22),transparent_60%)]" />
+            </div>
+
+            <div className="container relative z-10 mx-auto max-w-7xl px-6 pb-16 pt-28 md:pb-24 md:pt-36">
+                <motion.div initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.1, delayChildren: 0.2 } } }} className="max-w-2xl">
+                    <motion.h1 variants={fadeUp} className="text-[2.9rem] font-bold leading-[1.02] tracking-[-0.045em] text-white md:text-7xl">
+                        The operating system for Nigeria&rsquo;s <span className="bg-gradient-to-r from-lime to-gold bg-clip-text text-transparent">delivery businesses.</span>
+                    </motion.h1>
+                    <motion.p variants={fadeUp} className="mt-5 max-w-xl text-base leading-relaxed text-white/65 md:mt-7 md:text-xl">
+                        Drova is Delivery-as-a-Service for courier companies: a storefront customers can book from, automatic rider dispatch, escrow-protected payments and live tracking<span className="hidden md:inline"> — so you can stop running deliveries from WhatsApp and start running a business</span>.
+                    </motion.p>
+                    <motion.div variants={fadeUp} className="mt-8 grid grid-cols-[1.25fr_1fr] gap-2.5 sm:flex sm:gap-3 md:mt-10">
+                        <PrimaryCta className="px-4 text-[15px] md:px-7 md:text-base" />
+                        <a
+                            href="#demo"
+                            className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full border border-white/20 px-4 py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-white/10 md:px-7 md:text-base">
+                            <span className="md:hidden">Book a demo</span>
+                            <span className="hidden md:inline">Request a demo</span>
+                        </a>
+                    </motion.div>
+                    <motion.ul variants={fadeUp} className="mt-10 grid max-w-xl grid-cols-2 gap-x-4 gap-y-3 rounded-2xl border border-white/10 bg-forest/60 p-4 text-[13px] text-white/70 backdrop-blur-md md:mt-14 md:rounded-none md:border-x-0 md:border-b-0 md:bg-transparent md:p-0 md:backdrop-blur-none md:gap-x-8 md:pt-6 md:text-sm md:text-white/55">
+                        {HERO_PROOF.map(({ icon: Icon, label, short }) => (
+                            <li key={label} className="flex items-center gap-2 md:gap-2.5">
+                                <Icon className="h-4 w-4 shrink-0 text-lime" />
+                                <span className="md:hidden">{short}</span>
+                                <span className="hidden md:inline">{label}</span>
+                            </li>
+                        ))}
+                    </motion.ul>
+                </motion.div>
+            </div>
+
+            {/* Live activity toasts floating beside the globe */}
+            <div className="pointer-events-none absolute bottom-28 right-[6%] z-10 hidden w-72 flex-col gap-3 xl:flex">
+                {HERO_TOASTS.map((t, i) => (
+                    <motion.div
+                        key={t.title}
+                        initial={{ opacity: 0, x: 40 }}
+                        animate={{ opacity: 1, x: 0, y: [0, -6, 0] }}
+                        transition={{
+                            opacity: { delay: 2.6 + i * 0.5 },
+                            x: { delay: 2.6 + i * 0.5, type: "spring" },
+                            y: { delay: 3 + i, duration: 5, repeat: Infinity, ease: "easeInOut" },
+                        }}
+                        className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/8 p-3.5 shadow-2xl shadow-black/30 backdrop-blur-xl">
+                        <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-white/10">
+                            <t.icon className={cn("h-4 w-4", t.tone)} />
+                        </span>
+                        <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold text-white">{t.title}</p>
+                            <p className="truncate text-xs text-white/50">{t.meta}</p>
+                        </div>
+                    </motion.div>
+                ))}
+            </div>
+
+            <motion.a
+                href="#why"
+                animate={{ y: [0, 8, 0] }}
+                transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                className="absolute bottom-8 left-1/2 z-10 hidden -translate-x-1/2 text-white/35 md:block"
+                aria-label="Scroll down">
+                <ChevronDown className="h-6 w-6" />
+            </motion.a>
+        </section>
+    );
+}
+
+// ─── The problem ──────────────────────────────────────────────────────────────
+
+function Problem() {
+    return (
+        <section id="why" className="relative bg-white py-16 md:py-28">
+            <div className="container mx-auto max-w-6xl px-6">
+                <SectionHeading
+                    eyebrow="Why Drova"
+                    title={
+                        <>
+                            Delivery businesses deserve better than <span className="text-emerald">a group chat.</span>
+                        </>
+                    }
+                    subtitle="Most courier companies in Nigeria still run on WhatsApp, cash and memory. It works — until you want to grow."
+                />
+
+                <div className="mt-10 md:mt-16">
+                    <WhyPhones />
+                </div>
+            </div>
+        </section>
+    );
+}
+
+// ─── Product tour ─────────────────────────────────────────────────────────────
+
+function Product() {
+    return (
+        <section id="product" className="relative overflow-hidden bg-gradient-to-b from-forest via-forest to-forest-deep py-16 md:py-28">
+            <MarketplaceWaves />
+            <div className="container relative z-10 mx-auto max-w-7xl px-6">
+                <SectionHeading
+                    tone="dark"
+                    eyebrow="Product tour"
+                    title={
+                        <>
+                            See Drova <span className="text-lime">in action.</span>
+                        </>
+                    }
+                    subtitle="This is the app your team runs the business from, and the pages your customers book and track on."
+                />
+                <div className="mt-8 md:mt-14">
+                    <ProductTour />
+                </div>
+            </div>
+        </section>
+    );
+}
+
+// ─── Three sides of every delivery ────────────────────────────────────────────
+
+const SIDES = [
+    {
+        icon: LayoutDashboard,
+        who: "For your business",
+        title: "A dashboard that runs the day",
+        points: ["Create orders or take them from your storefront", "Live map of every online rider", "Wallet, withdrawals and transaction history", "Invite staff and control what they can see"],
+    },
+    {
+        icon: Smartphone,
+        who: "For your riders",
+        title: "An app built for the road",
+        points: ["Accept offers with one tap", "Navigation to every pickup and drop-off", "Earnings, payouts and performance in one place", "Tiers and badges that reward great work"],
+        highlight: true,
+    },
+    {
+        icon: Store,
+        who: "For your customers",
+        title: "Booking without the back-and-forth",
+        points: ["A marketplace app to find and compare couriers", "Book from your storefront — no account needed", "See the exact price before paying", "Track the rider live, stage by stage"],
+    },
+];
+
+function Sides() {
+    return (
+        <section id="platform" className="relative overflow-hidden bg-white py-16 md:py-28">
+            <div className="container relative z-10 mx-auto max-w-7xl px-6">
+                <SectionHeading
+                    eyebrow="One platform"
+                    title={
+                        <>
+                            Every side of the delivery, <span className="text-emerald">connected.</span>
+                        </>
+                    }
+                    subtitle="Your team, your riders and your customers each get the tool they need — and they all see the same order, in real time."
+                />
+                <Stagger className="rail mt-8 grid gap-6 md:mt-16 md:grid-cols-3">
+                    {SIDES.map((s) => (
+                        <motion.div
+                            key={s.who}
+                            variants={fadeUp}
+                            whileHover={{ y: -6 }}
+                            className={cn(
+                                "relative flex flex-col rounded-[2rem] border p-6 backdrop-blur-sm md:p-8",
+                                s.highlight ? "border-forest bg-forest text-white shadow-2xl shadow-forest/25" : "border-app-border bg-white/90 shadow-sm",
+                            )}>
+                            <span className={cn("grid size-12 place-items-center rounded-2xl", s.highlight ? "bg-lime text-forest" : "bg-mint text-forest")}>
+                                <s.icon className="h-5 w-5" />
+                            </span>
+                            <p className={cn("mt-5 text-[13px] font-semibold md:mt-6", s.highlight ? "text-lime" : "text-emerald")}>{s.who}</p>
+                            <h3 className={cn("mt-2 text-xl font-extrabold tracking-tight md:text-2xl", s.highlight ? "text-white" : "text-forest")}>{s.title}</h3>
+                            <ul className="mt-5 space-y-3 text-sm md:mt-6 md:text-[15px]">
+                                {s.points.map((p) => (
+                                    <FeatureItem key={p} tone={s.highlight ? "dark" : "light"}>
+                                        {p}
+                                    </FeatureItem>
+                                ))}
+                            </ul>
+                        </motion.div>
+                    ))}
+                </Stagger>
+            </div>
+        </section>
+    );
+}
+
+// ─── Life of an order ─────────────────────────────────────────────────────────
+
+function HowItWorks() {
+    return (
+        <section id="how-it-works" className="relative overflow-hidden bg-app-bg pb-52 pt-16 md:pb-56 md:pt-28">
+            <RouteJourney />
+            <div className="container relative z-10 mx-auto max-w-6xl px-6">
+                <SectionHeading
+                    eyebrow="Life of an order"
+                    title={
+                        <>
+                            From “book” to “delivered” — <span className="text-emerald">handled.</span>
+                        </>
+                    }
+                    subtitle="Every order moves through eight live stages. Drova does the busywork at each one, and everyone involved sees it happen."
+                />
+                <div className="mt-8 md:mt-16">
+                    <OrderLifecycle />
+                </div>
+            </div>
+        </section>
+    );
+}
+
+// ─── Dispatch & riders ────────────────────────────────────────────────────────
+
+const DISPATCH = [
+    { icon: Zap, title: "Timed offers", text: "Riders get an offer with a countdown. First to accept takes it; if it expires, you're alerted to assign it yourself." },
+    { icon: Scale, title: "Never overloaded", text: "Each rider has an order limit and a weight limit, so a bike never gets a fridge." },
+    { icon: UserCog, title: "You stay in control", text: "Assign or reassign any order by hand, whenever you need to." },
+    { icon: Package, title: "Care instructions", text: "Fragile, keep upright, refrigerate — riders see exactly how to handle every package." },
+];
+
+const RIDER_PERKS = [
+    { icon: Wallet, title: "Pay your way", text: "Commission or fixed pay, per order, daily, weekly or monthly." },
+    { icon: BadgeCheck, title: "Verified riders", text: "NIN verification, linked bank accounts and guarantors." },
+    { icon: Clock, title: "Performance you can see", text: "On-time rate, ratings and earnings on every rider's profile." },
+    { icon: CreditCard, title: "Cash too", text: "Paid a rider in cash? Record it, and the rider confirms it." },
+];
+
+function Riders() {
+    return (
+        <section id="riders" className="relative overflow-hidden bg-white py-16 md:py-28">
+            <div className="container mx-auto grid max-w-7xl items-center gap-10 px-6 md:gap-16 lg:grid-cols-2">
+                <div>
+                    <SectionHeading
+                        align="left"
+                        eyebrow="Smart dispatch"
+                        title={
+                            <>
+                                The right rider, <span className="text-emerald">in seconds.</span>
+                            </>
+                        }
+                        subtitle="The moment an order is paid, Drova offers it to your available riders. No calls, no group chat, no one sitting on a job."
+                    />
+                    <Stagger className="mt-7 grid grid-cols-2 gap-3 md:mt-10 md:gap-4">
+                        {DISPATCH.map((f) => (
+                            <motion.div key={f.title} variants={fadeUp} className="rounded-2xl border border-app-border bg-app-bg/60 p-4 md:p-5">
+                                <f.icon className="h-5 w-5 text-emerald" />
+                                <p className="mt-2.5 text-sm font-bold leading-snug text-forest md:mt-3 md:text-base">{f.title}</p>
+                                <p className="mt-1 hidden text-sm leading-relaxed text-sage md:block">{f.text}</p>
+                            </motion.div>
+                        ))}
+                    </Stagger>
+                </div>
+
+                <Reveal className="relative flex justify-center lg:justify-end" delay={0.1}>
+                    <div className="absolute inset-0 m-auto size-[26rem] rounded-full bg-gradient-to-br from-lime/35 to-emerald/10 blur-3xl" />
+                    <motion.div initial={{ rotate: -6, y: 30 }} whileInView={{ rotate: -6, y: 0 }} viewport={{ once: true }} className="relative z-10">
+                        <PhoneFrame>
+                            <RiderOfferScreen />
+                        </PhoneFrame>
+                    </motion.div>
+                    <motion.div initial={{ rotate: 5, y: 60 }} whileInView={{ rotate: 5, y: 40 }} viewport={{ once: true }} className="relative -ml-6 hidden sm:block">
+                        <PhoneFrame>
+                            <RiderProfileScreen />
+                        </PhoneFrame>
+                    </motion.div>
+                </Reveal>
+            </div>
+
+            {/* Rider motivation strip */}
+            <div className="container mx-auto mt-12 max-w-7xl px-6 md:mt-28">
+                <Reveal className="grid gap-6 overflow-hidden rounded-[2rem] bg-forest p-6 text-white md:grid-cols-[1.2fr_2fr] md:gap-8 md:p-12">
+                    <div>
+                        <Trophy className="h-8 w-8 text-gold" />
+                        <h3 className="mt-3 text-2xl font-bold tracking-tight md:mt-4 md:text-3xl">Riders who want to ride for you.</h3>
+                        <p className="mt-3 hidden text-white/65 md:block">
+                            Riders climb from Bronze to Platinum and earn 35+ badges for speed, ratings, streaks and specialist work. Good riders stay — and it shows in your reviews.
+                        </p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2.5 md:gap-3">
+                        {RIDER_PERKS.map((f) => (
+                            <div key={f.title} className="rounded-2xl border border-white/10 bg-white/5 p-4 md:p-5">
+                                <f.icon className="h-5 w-5 text-lime" />
+                                <p className="mt-2.5 text-sm font-bold leading-snug md:mt-3 md:text-base">{f.title}</p>
+                                <p className="mt-1 hidden text-sm text-white/60 md:block">{f.text}</p>
+                            </div>
+                        ))}
+                    </div>
+                </Reveal>
+            </div>
+        </section>
+    );
+}
+
+// ─── Pricing engine ───────────────────────────────────────────────────────────
+
+function PricingEngine() {
+    return (
+        <section id="pricing-engine" className="relative overflow-hidden bg-app-bg py-16 md:py-28">
+            <div className="container mx-auto grid max-w-7xl items-center gap-8 px-6 md:gap-14 lg:grid-cols-[1fr_1.35fr]">
+                <div>
+                    <SectionHeading
+                        align="left"
+                        eyebrow="Your prices, your rules"
+                        title={
+                            <>
+                                Set your prices once. <span className="text-emerald">Every order is quoted for you.</span>
+                            </>
+                        }
+                        subtitle="No more working out fares in your head. Customers see an exact price before they pay — calculated from the rules you set."
+                    />
+                    <ul className="mt-10 hidden space-y-4 text-[15px] md:block">
+                        <FeatureItem>
+                            <b className="text-forest">Distance tiers</b> for deliveries within your city
+                        </FeatureItem>
+                        <FeatureItem>
+                            <b className="text-forest">A flat price per state</b> — switch on any of the 36 states and the FCT
+                        </FeatureItem>
+                        <FeatureItem>
+                            <b className="text-forest">Weight surcharges</b>, including volumetric weight for bulky items
+                        </FeatureItem>
+                        <FeatureItem>
+                            <b className="text-forest">Express or scheduled</b> delivery, standard or bulk service
+                        </FeatureItem>
+                    </ul>
+                </div>
+                <Reveal delay={0.1}>
+                    <PriceCalculator />
+                </Reveal>
+            </div>
+        </section>
+    );
+}
+
+// ─── Escrow & payouts ─────────────────────────────────────────────────────────
+
+const ESCROW_STEPS = [
+    { icon: CreditCard, title: "Customer pays online", text: "By card, bank transfer or payment link." },
+    { icon: Lock, title: "Held in escrow", text: "The money is locked with Drova — safe for both sides." },
+    { icon: KeyRound, title: "PIN at the door", text: "The rider enters the customer's 6-digit PIN on delivery." },
+    { icon: Wallet, title: "Released to you", text: "After a 24-hour dispute window, it lands in your wallet." },
+];
+
+const MONEY_CARDS = [
+    {
+        icon: Scale,
+        title: "You keep 100% of your fee",
+        text: "Drova's 2.5% fee and 2% payment processing are added at checkout, each capped at ₦2,000 — and shown to the customer upfront.",
+    },
+    {
+        icon: Wallet,
+        title: "A wallet that pays everyone",
+        text: "Withdraw to your bank whenever you like, and pay riders from the same wallet. Every withdrawal needs your PIN.",
+    },
+    {
+        icon: MessageSquareWarning,
+        title: "Disputes with a paper trail",
+        text: "If something goes wrong, the customer opens a ticket — even as a guest — and you resolve it in a threaded conversation.",
+    },
+];
+
+function Payments() {
+    return (
+        <section id="payments" className="relative overflow-hidden bg-forest py-16 md:py-28 text-white">
+            <BrandPattern className="bg-lime/[0.035]" tile={120} />
+            <div className="absolute left-1/2 top-0 h-[36rem] w-[60rem] -translate-x-1/2 rounded-full bg-emerald/10 blur-[140px]" />
+            <div className="container relative z-10 mx-auto max-w-7xl px-6">
+                <SectionHeading
+                    tone="dark"
+                    eyebrow="Escrow payments"
+                    title={
+                        <>
+                            Get paid for every delivery. <span className="text-lime">No arguments.</span>
+                        </>
+                    }
+                    subtitle="Customers pay before the rider moves, and you're paid once the package is in their hands. No cash to chase, no “I've sent it” screenshots."
+                />
+
+                <Stagger className="relative mt-8 grid grid-cols-2 gap-x-4 gap-y-8 md:mt-16 md:grid-cols-4 md:gap-5">
+                    <div className="absolute left-[12%] right-[12%] top-10 hidden h-px bg-gradient-to-r from-lime/0 via-lime/50 to-lime/0 md:block" />
+                    {ESCROW_STEPS.map((s, i) => (
+                        <motion.div key={s.title} variants={fadeUp} className="relative text-center">
+                            <motion.span
+                                className="relative z-10 mx-auto grid size-14 place-items-center rounded-2xl border md:size-20 md:rounded-3xl border-lime/25 bg-forest shadow-xl shadow-black/40"
+                                animate={{ boxShadow: ["0 0 0 0 rgba(106,189,69,0)", "0 0 0 10px rgba(106,189,69,0.12)", "0 0 0 0 rgba(106,189,69,0)"] }}
+                                transition={{ duration: 2.4, repeat: Infinity, delay: i * 0.6 }}>
+                                <s.icon className="h-6 w-6 text-lime md:h-7 md:w-7" />
+                            </motion.span>
+                            <p className="mt-3 text-xs font-semibold text-white/40 md:mt-5 md:text-[13px]">Step {i + 1}</p>
+                            <p className="mt-1 text-[15px] font-bold leading-snug md:text-lg">{s.title}</p>
+                            <p className="mx-auto mt-1 max-w-[15rem] text-xs text-white/55 md:text-sm">{s.text}</p>
+                        </motion.div>
+                    ))}
+                </Stagger>
+
+                <Stagger className="rail mt-10 grid gap-5 md:mt-20 md:grid-cols-3">
+                    {MONEY_CARDS.map((c) => (
+                        <motion.div key={c.title} variants={fadeUp} className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur md:p-7">
+                            <c.icon className="h-6 w-6 text-gold" />
+                            <p className="mt-4 text-lg font-bold">{c.title}</p>
+                            <p className="mt-2 text-sm leading-relaxed text-white/60">{c.text}</p>
+                        </motion.div>
+                    ))}
+                </Stagger>
+            </div>
+        </section>
+    );
+}
+
+// ─── Operations & control ─────────────────────────────────────────────────────
+
+
+function Controls() {
+    return (
+        <section className="bg-white py-16 md:py-28">
+            <div className="container mx-auto max-w-7xl px-6">
+                <SectionHeading
+                    eyebrow="Built for serious operations"
+                    title={
+                        <>
+                            Everything you need <span className="text-emerald">to scale.</span>
+                        </>
+                    }
+                    subtitle="Drova grows with you — from a founder dispatching three riders to an operations team running a fleet."
+                />
+                <div className="mt-8 md:mt-16">
+                    <OpsBento />
+                </div>
+            </div>
+        </section>
+    );
+}
+
+// ─── Customer app & marketplace ───────────────────────────────────────────────
+
+const CUSTOMER_FEATURES = [
+    { icon: Store, title: "Couriers nearby", text: "Browse verified delivery businesses around you, filtered by vehicle, service and who's open now." },
+    { icon: Scale, title: "Compare prices", text: "Enter a route once and see every courier that can take it — price, rating and timing side by side." },
+    { icon: ShieldCheck, title: "Pay with confidence", text: "Card, transfer or payment link, held in escrow until the customer hands over their delivery PIN." },
+    { icon: Heart, title: "Favourites", text: "Customers save the businesses they love and come straight back to them." },
+];
+
+const CUSTOMER_PERKS = [
+    { icon: Radar, title: "Live tracking", text: "Every stage of the delivery, with the rider on a map." },
+    { icon: RotateCcw, title: "Book again in a tap", text: "Past deliveries are one tap away from repeating." },
+    { icon: MapPin, title: "Saved addresses", text: "Home, office and a default address, ready at checkout." },
+    { icon: Star, title: "Rate or report", text: "Leave a review, or open a dispute ticket if something goes wrong." },
+];
+
+function Customers() {
+    return (
+        <section id="customers" className="relative overflow-hidden bg-gradient-to-b from-white to-app-bg py-16 md:py-28">
+            <div id="marketplace" className="container mx-auto grid max-w-7xl items-center gap-10 px-6 md:gap-16 lg:grid-cols-2">
+                <Reveal className="relative order-2 flex justify-center lg:order-1 lg:justify-start" delay={0.1}>
+                    <div className="absolute inset-0 m-auto size-[26rem] rounded-full bg-gradient-to-br from-gold/30 via-lime/30 to-emerald/10 blur-3xl" />
+                    <motion.div initial={{ rotate: -6, y: 30 }} whileInView={{ rotate: -6, y: 0 }} viewport={{ once: true }} className="relative z-10">
+                        <PhoneFrame>
+                            <CustomerMarketplaceScreen />
+                        </PhoneFrame>
+                    </motion.div>
+                    <motion.div initial={{ rotate: 5, y: 60 }} whileInView={{ rotate: 5, y: 40 }} viewport={{ once: true }} className="relative -ml-3 hidden sm:block">
+                        <PhoneFrame>
+                            <CustomerCompareScreen />
+                        </PhoneFrame>
+                    </motion.div>
+                </Reveal>
+
+                <div className="order-1 lg:order-2">
+                    <SectionHeading
+                        align="left"
+                        eyebrow="The Drova app for customers"
+                        title={
+                            <>
+                                Every courier in town, <span className="text-emerald">in one app.</span>
+                            </>
+                        }
+                        subtitle="Customers find your business on the Drova Marketplace, compare prices side by side, and book, pay and track — without a single phone call."
+                    />
+                    <Stagger className="mt-7 grid grid-cols-2 gap-3 md:mt-10 md:gap-4">
+                        {CUSTOMER_FEATURES.map((f) => (
+                            <motion.div key={f.title} variants={fadeUp} className="rounded-2xl border border-app-border bg-white/80 p-4 md:p-5">
+                                <f.icon className="h-5 w-5 text-emerald" />
+                                <p className="mt-2.5 text-sm font-bold leading-snug text-forest md:mt-3 md:text-base">{f.title}</p>
+                                <p className="mt-1 hidden text-sm leading-relaxed text-sage md:block">{f.text}</p>
+                            </motion.div>
+                        ))}
+                    </Stagger>
+                </div>
+            </div>
+
+            {/* Customer loyalty strip */}
+            <div className="container mx-auto mt-12 max-w-7xl px-6 md:mt-28">
+                <Reveal className="grid gap-6 overflow-hidden rounded-[2rem] bg-forest p-6 text-white md:grid-cols-[1.2fr_2fr] md:gap-8 md:p-12">
+                    <div>
+                        <Heart className="h-8 w-8 fill-gold/20 text-gold" />
+                        <h3 className="mt-3 text-2xl font-bold tracking-tight md:mt-4 md:text-3xl">Customers who keep coming back.</h3>
+                        <p className="mt-3 hidden text-white/65 md:block">
+                            Every delivery is easy to follow and easy to repeat — so customers who find you on the Marketplace stay with you.
+                        </p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2.5 md:gap-3">
+                        {CUSTOMER_PERKS.map((f) => (
+                            <div key={f.title} className="rounded-2xl border border-white/10 bg-white/5 p-4 md:p-5">
+                                <f.icon className="h-5 w-5 text-lime" />
+                                <p className="mt-2.5 text-sm font-bold leading-snug md:mt-3 md:text-base">{f.title}</p>
+                                <p className="mt-1 hidden text-sm text-white/60 md:block">{f.text}</p>
+                            </div>
+                        ))}
+                    </div>
+                </Reveal>
+            </div>
+        </section>
+    );
+}
+
+// ─── Plans ────────────────────────────────────────────────────────────────────
+
+const PLANS = [
+    {
+        name: "Starter",
+        price: "Free",
+        period: "forever",
+        description: "Perfect for getting started",
+        features: ["Up to 5 riders", "100 orders / month", "Storefront & live tracking", "Escrow payments", "Basic analytics", "Weekly payouts", "Email support"],
+        cta: "Start for free",
+    },
+    {
+        name: "Professional",
+        price: "₦25,000",
+        period: "per month",
+        description: "For growing courier companies",
+        highlight: true,
+        features: ["Up to 25 riders", "2,000 orders / month", "Everything in Starter", "Custom domain for your storefront", "Advanced analytics", "Daily payouts", "Priority support", "WhatsApp integration"],
+        cta: "Join the waitlist",
+    },
+    {
+        name: "Enterprise",
+        price: "₦50,000",
+        period: "per month",
+        description: "For established fleets",
+        features: ["Unlimited riders", "Unlimited orders", "Everything in Professional", "Full analytics & data export", "Real-time payouts", "Dedicated account manager", "API access"],
+        cta: "Request a demo",
+        href: "#demo",
+    },
+];
+
+function Plans() {
+    return (
+        <section id="pricing" className="relative overflow-hidden bg-app-bg py-16 md:py-28">
+            <div className="container relative z-10 mx-auto max-w-6xl px-6">
+                <SectionHeading
+                    eyebrow="Pricing"
+                    title={
+                        <>
+                            Start free. <span className="text-emerald">Scale as you grow.</span>
+                        </>
+                    }
+                    subtitle="No setup costs and no hidden fees. On every plan, you keep 100% of your delivery fees."
+                />
+                <Stagger className="rail mt-8 grid items-stretch gap-6 md:mt-16 md:grid-cols-3">
+                    {PLANS.map((p) => (
+                        <motion.div
+                            key={p.name}
+                            variants={fadeUp}
+                            whileHover={{ y: -6 }}
+                            className={cn(
+                                "relative flex flex-col rounded-[2rem] border p-7 md:p-8",
+                                p.highlight && "order-first md:order-none",
+                                p.highlight ? "border-forest bg-forest text-white shadow-2xl shadow-forest/30 md:-my-4 md:py-12" : "border-app-border bg-white shadow-sm",
+                            )}>
+                            {p.highlight && <span className="absolute -top-3 left-8 rounded-full bg-lime px-3 py-1 text-xs font-bold text-forest">Most popular</span>}
+                            <p className={cn("text-lg font-bold", p.highlight ? "text-white" : "text-forest")}>{p.name}</p>
+                            <p className={cn("text-sm", p.highlight ? "text-white/60" : "text-sage")}>{p.description}</p>
+                            <p className="mt-6">
+                                <span className={cn("text-4xl font-bold tracking-tight md:text-5xl", p.highlight ? "text-white" : "text-forest")}>{p.price}</span>
+                                <span className={cn("ml-2 text-sm", p.highlight ? "text-white/60" : "text-sage")}>{p.period}</span>
+                            </p>
+                            <ul className="mt-6 flex-1 space-y-3 text-sm md:mt-8">
+                                {p.features.map((f) => (
+                                    <FeatureItem key={f} tone={p.highlight ? "dark" : "light"}>
+                                        {f}
+                                    </FeatureItem>
+                                ))}
+                            </ul>
+                            <a
+                                href={p.href ?? WAITLIST_URL}
+                                {...(p.href ? {} : { target: "_blank", rel: "noreferrer" })}
+                                className={cn(
+                                    "mt-10 rounded-full py-3 text-center font-bold transition-colors",
+                                    p.highlight ? "bg-lime text-forest hover:bg-lime/90" : "border border-forest/20 text-forest hover:bg-mint",
+                                )}>
+                                {p.cta}
+                            </a>
+                        </motion.div>
+                    ))}
+                </Stagger>
+            </div>
+        </section>
+    );
+}
+
+// ─── FAQ ──────────────────────────────────────────────────────────────────────
+
+const FAQS = [
+    {
+        q: "How does escrow protect my business?",
+        a: "The customer pays online before the rider sets off, and Drova holds the money. When the rider arrives, the customer gives them a 6-digit delivery PIN, and the rider enters it to complete the order. After a 24-hour window for disputes, the payment is released to your wallet automatically.",
+    },
+    {
+        q: "Who pays Drova's fees?",
+        a: "The customer. A 2.5% Drova fee and 2% payment processing are added to the delivery price at checkout — each capped at ₦2,000 — and shown before they pay. You receive 100% of the delivery fee you set.",
+    },
+    {
+        q: "Do my customers need to download an app or create an account?",
+        a: "No. Customers can book from your storefront as guests, pay by card, bank transfer or payment link, follow the delivery on a tracking link, and even raise a dispute using a ticket number.",
+    },
+    {
+        q: "What happens if no rider accepts an order?",
+        a: "Drova offers each paid order to available riders with a countdown. If the offer window expires without a taker, you're notified straight away so you can assign it to someone manually.",
+    },
+    {
+        q: "How do I pay my riders?",
+        a: "Choose commission or fixed pay for each rider, and pay them per order, daily, weekly or monthly — straight from your Drova wallet. If you pay a rider in cash, you can record it and the rider confirms receipt.",
+    },
+    {
+        q: "Can I deliver outside my state?",
+        a: "Yes. Set a flat price for each state you deliver to — any of the 36 states and the FCT — alongside distance-based pricing within your city.",
+    },
+    {
+        q: "Can my staff use Drova without full access?",
+        a: "Yes. Invite staff and give them roles with only the permissions they need — orders, riders, transactions, disputes, staff, roles or business settings.",
+    },
+];
+
+function Faq() {
+    const [open, setOpen] = useState<number | null>(0);
+    return (
+        <section id="faq" className="bg-white py-16 md:py-28">
+            <div className="container mx-auto grid max-w-6xl gap-8 px-6 md:gap-14 lg:grid-cols-[1fr_1.6fr]">
+                <SectionHeading
+                    align="left"
+                    eyebrow="FAQ"
+                    title="Questions, answered."
+                    subtitle={
+                        <>
+                            Something else on your mind?{" "}
+                            <a href="mailto:product@drova.ng" className="font-semibold text-emerald underline-offset-4 hover:underline">
+                                Email the team
+                            </a>
+                            .
+                        </>
+                    }
+                />
+                <Reveal className="divide-y divide-app-border overflow-hidden rounded-[2rem] border border-app-border bg-app-bg/50">
+                    {FAQS.map((f, i) => (
+                        <div key={f.q}>
+                            <button
+                                type="button"
+                                onClick={() => setOpen(open === i ? null : i)}
+                                aria-expanded={open === i}
+                                className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-[15px] font-semibold text-forest hover:bg-mint/30 md:gap-6 md:px-7 md:py-5 md:text-base">
+                                {f.q}
+                                <ChevronDown className={cn("h-5 w-5 shrink-0 text-emerald transition-transform duration-300", open === i && "rotate-180")} />
+                            </button>
+                            <AnimatePresence initial={false}>
+                                {open === i && (
+                                    <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: "auto", opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{ duration: 0.3 }}
+                                        className="overflow-hidden">
+                                        <p className="px-5 pb-5 text-[15px] leading-relaxed text-sage md:px-7 md:pb-6 md:text-base">{f.a}</p>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    ))}
+                </Reveal>
+            </div>
+        </section>
+    );
+}
+
+// ─── Final CTA & footer ───────────────────────────────────────────────────────
+
+function FinalCta() {
+    return (
+        <section className="relative overflow-hidden bg-lime py-20 md:py-36">
+            {/* The brand pattern, drifting slowly behind the call to action */}
+            <BrandPattern className="bg-forest/[0.09]" tile={104} />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_55%_at_50%_50%,#6abd45_30%,transparent)]" />
+            <div className="container relative z-10 mx-auto max-w-3xl px-6 text-center">
+                <Reveal>
+                    <span className="inline-flex items-center gap-2 rounded-full bg-forest/10 px-4 py-1.5 text-[13px] font-semibold text-forest">
+                        <span className="size-1.5 animate-pulse rounded-full bg-forest" /> Now accepting early access
+                    </span>
+                    <h2 className="mt-7 text-5xl font-bold leading-[1.02] tracking-[-0.04em] text-forest md:text-7xl">Your fleet, on autopilot.</h2>
+                    <p className="mx-auto mt-6 max-w-xl text-lg font-medium text-forest/75">
+                        Join the waitlist for early access, priority onboarding and locked-in founding pricing.
+                    </p>
+                    <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                        <PrimaryCta className="bg-forest text-white shadow-xl shadow-forest/25 hover:bg-forest/90" />
+                        <a href="#demo" className="inline-flex items-center justify-center rounded-full border-2 border-forest/25 px-7 py-3 font-bold text-forest transition-colors hover:border-forest hover:bg-forest/5">
+                            Request a demo
+                        </a>
+                    </div>
+                </Reveal>
+            </div>
+        </section>
+    );
+}
+
+const FOOTER_LINKS: [string, [string, string][]][] = [
+    ["Product", [["Tour", "#product"], ["How it works", "#how-it-works"], ["Payments", "#payments"], ["Pricing", "#pricing"]]],
+    ["For", [["Businesses", "#platform"], ["Customers", "#customers"], ["Riders", "#riders"]]],
+    ["Company", [["FAQ", "#faq"], ["Request a demo", "#demo"], ["Contact", "mailto:product@drova.ng"], ["Join the waitlist", WAITLIST_URL]]],
+];
+
+function Footer() {
+    return (
+        <footer className="bg-forest py-12 text-white md:py-14">
+            <div className="container mx-auto max-w-7xl px-6">
+                <div className="flex flex-col justify-between gap-10 md:flex-row">
+                    <div className="max-w-xs">
+                        <Logo className="bg-lime" height={34} />
+                        <p className="mt-4 text-sm text-white/45">The operating system for delivery businesses in Africa.</p>
+                    </div>
+                    <div className="grid grid-cols-3 gap-6 text-sm md:gap-10">
+                        {FOOTER_LINKS.map(([title, links]) => (
+                            <div key={title}>
+                                <p className="font-semibold text-white">{title}</p>
+                                <ul className="mt-4 space-y-2.5 text-white/50">
+                                    {links.map(([label, href]) => (
+                                        <li key={label}>
+                                            <a href={href} className="transition-colors hover:text-lime">
+                                                {label}
+                                            </a>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                <div className="mt-10 flex flex-col justify-between gap-3 border-t border-white/10 pt-6 md:mt-14 text-xs text-white/35 sm:flex-row">
+                    <p>© 2026 Drova. All rights reserved.</p>
+                    <p className="flex items-center gap-1.5">
+                        <MapPin className="h-3.5 w-3.5" /> Built in Nigeria, for Africa
+                    </p>
+                </div>
+            </div>
+        </footer>
     );
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function Index() {
-    const heroContentRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        // Parallax effect for hero section
-        const handleMouseMove = (e: MouseEvent) => {
-            if (!heroContentRef.current) return;
-            
-            const x = (e.clientX / window.innerWidth - 0.5) * 20;
-            const y = (e.clientY / window.innerHeight - 0.5) * 20;
-            
-            gsap.to(heroContentRef.current, {
-                x: x,
-                y: y,
-                duration: 1,
-                ease: 'power2.out',
-            });
-        };
-
-        window.addEventListener('mousemove', handleMouseMove);
-
-        return () => {
-            window.removeEventListener('mousemove', handleMouseMove);
-        };
-    }, []);
-
     return (
-        <main className="flex flex-col overflow-hidden">
-            {/* ── HERO ─────────────────────────────────────────────────────── */}
-            <section className="min-h-screen bg-[url('/hero-bg.jpg')] bg-cover bg-center flex items-center relative">
-                <HeroWebGLBackground />
-                <div className="absolute inset-0 bg-linear-to-br from-primary/92 via-primary/82 to-black/90" />
-
-                <div className="relative z-10 container mx-auto px-6 py-36 max-w-7xl">
-                    <div ref={heroContentRef} className="max-w-3xl">
-                        <motion.div initial="hidden" animate="visible" variants={staggerContainer}>
-                        {/* Label */}
-                        <motion.div variants={fadeInUp}>
-                            <Badge className="mb-6 gap-2 bg-accent/15 text-accent border-accent/35 backdrop-blur-sm">
-                                <Zap className="h-3 w-3" />
-                                Africa's first Delivery-as-a-Service Platform
-                            </Badge>
-                        </motion.div>
-
-                        {/* Headline */}
-                        <motion.h1
-                            variants={fadeInUp}
-                            className="text-5xl md:text-[4.25rem] font-black text-white tracking-tight leading-[1.05] mb-6">
-                            Run Your Delivery <span className="text-accent">Business Like a Pro</span>
-                        </motion.h1>
-
-                        {/* Sub */}
-                        <motion.p variants={fadeInUp} className="text-xl text-white/70 leading-relaxed max-w-2xl mb-10">
-                            Drova gives your courier company a branded storefront, smart dashboard, Escrow-secured payments, and real-time rider tracking
-                            — with zero technical setup required.
-                        </motion.p>
-
-                        {/* CTAs */}
-                        <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4">
-                            <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
-                                <a
-                                    href={WAITLIST_URL}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className={`${buttonVariants({ size: "lg" })} gap-2 text-base px-8 bg-accent! text-primary! border-0! hover:opacity-90! font-semibold`}>
-                                    Join the Waitlist
-                                    <ArrowRight className="h-4 w-4" />
-                                </a>
-                            </motion.div>
-                            <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
-                                <a
-                                    href="#how-it-works"
-                                    className={`${buttonVariants({ variant: "ghost", size: "lg" })} text-base text-white! border border-white/30 hover:bg-white/10! px-8`}>
-                                    See How It Works
-                                </a>
-                            </motion.div>
-                        </motion.div>
-
-                        {/* Quick stats */}
-                        <motion.div variants={fadeInUp} className="flex items-center gap-8 mt-14 pt-8 border-t border-white/15">
-                            {[
-                                { value: "Zero", label: "Technical Setup" },
-                                { value: "Escrow", label: "Secured Payments" },
-                                { value: "Real-time", label: "Rider Tracking" },
-                            ].map((stat) => (
-                                <div key={stat.label}>
-                                    <div className="text-xl font-bold text-accent">{stat.value}</div>
-                                    <div className="text-xs text-white/55 mt-0.5">{stat.label}</div>
-                                </div>
-                            ))}
-                        </motion.div>
-                        </motion.div>
-                    </div>
-                </div>
-
-                {/* Scroll cue */}
-                <motion.div
-                    animate={{ y: [0, 8, 0] }}
-                    transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                    className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/35">
-                    <ChevronRight className="h-6 w-6 rotate-90" />
-                </motion.div>
-            </section>
-
-            {/* ── PROBLEM → SOLUTION ───────────────────────────────────────── */}
-            <section id="services" className="py-24 bg-primary text-white overflow-hidden">
-                <div className="container mx-auto px-6 max-w-7xl">
-                    <AnimatedSection className="text-center mb-16">
-                        <p className="text-accent font-semibold mb-3 uppercase tracking-widest text-xs">The Problem</p>
-                        <h2 className="text-4xl md:text-5xl font-black text-balance">
-                            African logistics is broken.
-                            <br />
-                            We're fixing it.
-                        </h2>
-                    </AnimatedSection>
-
-                    <motion.div
-                        initial="hidden"
-                        whileInView="visible"
-                        viewport={{ once: true, margin: "-80px" }}
-                        variants={staggerContainer}
-                        className="grid md:grid-cols-2 gap-5 max-w-4xl mx-auto">
-                        {/* Without Drova */}
-                        <motion.div variants={scaleIn} className="rounded-2xl bg-white/5 border border-white/10 p-8">
-                            <div className="flex items-center gap-3 mb-7">
-                                <div className="h-8 w-8 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
-                                    <X className="h-4 w-4 text-red-400" />
-                                </div>
-                                <h3 className="text-base font-semibold text-white/55">Without Drova</h3>
-                            </div>
-                            <ul className="space-y-3.5">
-                                {[
-                                    "WhatsApp group coordination",
-                                    "No customer-facing booking",
-                                    "Cash payments, frequent disputes",
-                                    "No rider tracking",
-                                    "No reviews or credibility",
-                                    "No analytics or insights",
-                                ].map((item) => (
-                                    <li key={item} className="flex items-center gap-3 text-white/45">
-                                        <span className="h-1.5 w-1.5 rounded-full bg-red-400/50 flex-shrink-0" />
-                                        <span className="text-sm line-through decoration-red-400/35">{item}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </motion.div>
-
-                        {/* With Drova */}
-                        <motion.div variants={scaleIn} className="rounded-2xl bg-accent/10 border border-accent/30 p-8">
-                            <div className="flex items-center gap-3 mb-7">
-                                <div className="h-8 w-8 rounded-full bg-accent/20 flex items-center justify-center flex-shrink-0">
-                                    <Check className="h-4 w-4 text-accent" />
-                                </div>
-                                <h3 className="text-base font-semibold text-white">With Drova</h3>
-                            </div>
-                            <ul className="space-y-3.5">
-                                {[
-                                    "Structured order management dashboard",
-                                    "Branded storefront with online booking",
-                                    "Escrow-secured payments",
-                                    "Real-time GPS rider tracking",
-                                    "Verified ratings and review system",
-                                    "Full business analytics dashboard",
-                                ].map((item) => (
-                                    <li key={item} className="flex items-center gap-3">
-                                        <CheckCircle className="h-4 w-4 text-accent flex-shrink-0" />
-                                        <span className="text-sm text-white/90">{item}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </motion.div>
-                    </motion.div>
-                </div>
-            </section>
-
-            {/* ── PLATFORM FEATURES ────────────────────────────────────────── */}
-            <section className="py-24 bg-background">
-                <div className="container mx-auto px-6 max-w-7xl">
-                    <AnimatedSection className="text-center mb-16">
-                        <p className="text-accent font-semibold mb-3 uppercase tracking-widest text-xs">The Platform</p>
-                        <h2 className="text-4xl md:text-5xl font-black text-balance mb-4">
-                            Everything you need,
-                            <br />
-                            nothing you don't
-                        </h2>
-                        <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-                            Four interconnected products. One subscription. Runs on any browser — no IT team required.
-                        </p>
-                    </AnimatedSection>
-
-                    <motion.div
-                        initial="hidden"
-                        whileInView="visible"
-                        viewport={{ once: true, margin: "-80px" }}
-                        variants={staggerContainer}
-                        className="grid md:grid-cols-2 gap-6">
-                        {[
-                            {
-                                icon: LayoutDashboard,
-                                title: "Business Dashboard",
-                                description:
-                                    "Manage your entire operation from one clean web interface. Orders, riders, payments, analytics, and settings — all in one place.",
-                                features: [
-                                    "Live order management & assignment",
-                                    "Rider performance scorecards",
-                                    "Wallet balance & payout scheduling",
-                                    "Revenue trends & peak-hour analytics",
-                                ],
-                                highlighted: false,
-                            },
-                            {
-                                icon: Store,
-                                title: "Branded Storefront",
-                                description:
-                                    "Every business gets a public page at yourname.drova.ng — where customers browse services, see pricing, read reviews, and book deliveries.",
-                                features: [
-                                    "Auto-generated subdomain on signup",
-                                    "Custom domain support (paid plans)",
-                                    "Live booking form with fee calculator",
-                                    "Verified customer reviews & ratings",
-                                ],
-                                highlighted: true,
-                            },
-                            {
-                                icon: Shield,
-                                title: "Escrow Payments",
-                                description:
-                                    "Money moves directly between customer and business — held by Drova until delivery is confirmed. No middleman delays, no cash disputes, no trust issues.",
-                                features: [
-                                    "Paystack-powered Escrow escrow",
-                                    "Photo proof required on delivery",
-                                    "Auto-release after 2-hour window",
-                                    "Structured dispute resolution (48hr SLA)",
-                                ],
-                                highlighted: true,
-                            },
-                            {
-                                icon: Smartphone,
-                                title: "Rider Mobile App",
-                                description:
-                                    "A lightweight app built for low-data environments and entry-level Android phones.",
-                                features: [
-                                    "One-tap Online / Offline toggle",
-                                    "Google Maps navigation built-in",
-                                    "Daily & weekly earnings tracker",
-                                    "Push notifications for new jobs",
-                                ],
-                                highlighted: false,
-                            },
-                        ].map((feature) => (
-                            <motion.div key={feature.title} variants={scaleIn} className="h-full">
-                                <motion.div whileHover={{ y: -5, transition: { duration: 0.22 } }} className="h-full">
-                                    <Card
-                                        className={`h-full border-2 transition-colors ${
-                                            feature.highlighted ? "border-accent/45 bg-accent/4" : "hover:border-primary/25"
-                                        }`}>
-                                        <CardContent className="p-8 flex flex-col gap-5 h-full">
-                                            <div
-                                                className={`h-11 w-11 rounded-xl flex items-center justify-center ${
-                                                    feature.highlighted ? "bg-accent/18" : "bg-primary/10"
-                                                }`}>
-                                                <feature.icon className={`h-5 w-5 ${feature.highlighted ? "text-accent" : "text-primary"}`} />
-                                            </div>
-                                            <div>
-                                                <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
-                                                <p className="text-muted-foreground text-sm leading-relaxed">{feature.description}</p>
-                                            </div>
-                                            <ul className="space-y-2.5 mt-auto">
-                                                {feature.features.map((f) => (
-                                                    <li key={f} className="flex items-center gap-2.5 text-sm">
-                                                        <CheckCircle
-                                                            className={`h-4 w-4 flex-shrink-0 ${
-                                                                feature.highlighted ? "text-accent" : "text-primary"
-                                                            }`}
-                                                        />
-                                                        <span>{f}</span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </CardContent>
-                                    </Card>
-                                </motion.div>
-                            </motion.div>
-                        ))}
-                    </motion.div>
-                </div>
-            </section>
-
-            {/* ── HOW IT WORKS ─────────────────────────────────────────────── */}
-            <section id="how-it-works" className="py-24 bg-muted/30">
-                <div className="container mx-auto px-6 max-w-7xl">
-                    <AnimatedSection className="text-center mb-16">
-                        <p className="text-accent font-semibold mb-3 uppercase tracking-widest text-xs">How It Works</p>
-                        <h2 className="text-4xl md:text-5xl font-black text-balance">
-                            Live in minutes,
-                            <br />
-                            not months
-                        </h2>
-                    </AnimatedSection>
-
-                    <motion.div
-                        initial="hidden"
-                        whileInView="visible"
-                        viewport={{ once: true, margin: "-80px" }}
-                        variants={staggerContainer}
-                        className="grid md:grid-cols-3 gap-10 max-w-5xl mx-auto">
-                        {[
-                            {
-                                step: "01",
-                                icon: Building2,
-                                title: "Register Your Business",
-                                description:
-                                    "Sign up with your business name, city, and fleet size. Verify via phone OTP. Your public storefront is auto-generated instantly at yourname.drova.ng.",
-                            },
-                            {
-                                step: "02",
-                                icon: Users,
-                                title: "Add Your Riders",
-                                description:
-                                    "Invite riders by phone number. They receive an SMS with the app download link, complete their profile, and they're ready to take jobs.",
-                            },
-                            {
-                                step: "03",
-                                icon: Package,
-                                title: "Start Taking Orders",
-                                description:
-                                    "Share your storefront link. Customers book online, pay via Escrow, and your riders are dispatched with step-by-step navigation.",
-                            },
-                        ].map((item, i) => (
-                            <motion.div key={item.step} variants={fadeInUp} className="relative text-center">
-                                {/* Connector line */}
-                                {i < 2 && (
-                                    <div className="hidden md:block absolute top-14 left-[calc(50%+3.5rem)] w-[calc(100%-7rem)] h-px bg-gradient-to-r from-primary/25 to-transparent" />
-                                )}
-                                <div className="space-y-4">
-                                    <div className="inline-flex flex-col items-center">
-                                        <span className="text-6xl font-black text-primary/8 leading-none mb-1">{item.step}</span>
-                                        <div className="h-14 w-14 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
-                                            <item.icon className="h-7 w-7 text-white" />
-                                        </div>
-                                    </div>
-                                    <h3 className="text-lg font-bold">{item.title}</h3>
-                                    <p className="text-muted-foreground text-sm leading-relaxed">{item.description}</p>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </motion.div>
-                </div>
-            </section>
-
-            {/* ── MARKETPLACE ──────────────────────────────────────────────── */}
-            <section id="marketplace" className="py-32 bg-gradient-to-b from-primary via-primary to-black relative overflow-hidden">
-                {/* WebGL Particle Background */}
-                <ParticleBackground />
-
-                {/* Animated background orbs */}
-                <motion.div
-                    animate={{
-                        scale: [1, 1.2, 1],
-                        opacity: [0.3, 0.5, 0.3],
-                    }}
-                    transition={{ repeat: Infinity, duration: 8, ease: "easeInOut" }}
-                    className="absolute top-20 left-10 w-96 h-96 bg-accent/10 rounded-full blur-3xl"
-                />
-                <motion.div
-                    animate={{
-                        scale: [1, 1.3, 1],
-                        opacity: [0.2, 0.4, 0.2],
-                    }}
-                    transition={{ repeat: Infinity, duration: 10, ease: "easeInOut", delay: 1 }}
-                    className="absolute bottom-20 right-10 w-80 h-80 bg-accent/8 rounded-full blur-3xl"
-                />
-                <motion.div
-                    animate={{
-                        y: [0, -30, 0],
-                        x: [0, 20, 0],
-                    }}
-                    transition={{ repeat: Infinity, duration: 12, ease: "easeInOut" }}
-                    className="absolute top-1/3 right-1/4 w-64 h-64 bg-gradient-to-br from-accent/5 to-transparent rounded-full blur-2xl"
-                />
-
-                <div className="container mx-auto px-6 max-w-7xl relative z-10">
-                    <AnimatedSection className="text-center mb-24">
-                        <motion.div
-                            animate={{ y: [0, -8, 0] }}
-                            transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-                            className="inline-block mb-8">
-                            <Badge className="gap-2 bg-accent/15 text-accent border-accent/35 backdrop-blur-sm px-4 py-2">
-                                <Store className="h-3 w-3" />
-                                Consumer Marketplace
-                            </Badge>
-                        </motion.div>
-                        <h2 className="text-5xl md:text-7xl font-black text-white text-balance mb-6 leading-tight">
-                            Get Discovered on the
-                            <br />
-                            <motion.span
-                                animate={{
-                                    backgroundPosition: ["0%", "100%", "0%"],
-                                }}
-                                transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
-                                className="text-transparent bg-clip-text bg-gradient-to-r from-accent via-green-300 to-accent bg-[length:200%_auto]">
-                                Drova Marketplace
-                            </motion.span>
-                        </h2>
-                        <p className="text-xl md:text-2xl text-white/50 max-w-3xl mx-auto font-light">
-                            Where customers find you, trust you, and book you — in seconds
-                        </p>
-                    </AnimatedSection>
-
-                    {/* Interactive Feature Grid */}
-                    <div className="grid lg:grid-cols-3 gap-6 max-w-6xl mx-auto mb-24">
-                        {[
-                            {
-                                icon: Users,
-                                title: "Steady Stream",
-                                desc: "Active customers, daily",
-                                gradient: "from-blue-500/20 to-cyan-500/20",
-                                iconGradient: "from-blue-400 to-cyan-400",
-                            },
-                            {
-                                icon: Shield,
-                                title: "Escrow Trust",
-                                desc: "Secure payments, zero risk",
-                                gradient: "from-purple-500/20 to-pink-500/20",
-                                iconGradient: "from-purple-400 to-pink-400",
-                            },
-                            {
-                                icon: Zap,
-                                title: "Scale Fast",
-                                desc: "More orders, more revenue",
-                                gradient: "from-orange-500/20 to-yellow-500/20",
-                                iconGradient: "from-orange-400 to-yellow-400",
-                            },
-                        ].map((feature, i) => (
-                            <div
-                                key={feature.title}
-                                ref={(el) => {
-                                    if (el) {
-                                        gsap.fromTo(el, 
-                                            { opacity: 0, y: 60, scale: 0.9 },
-                                            {
-                                                opacity: 1,
-                                                y: 0,
-                                                scale: 1,
-                                                duration: 0.8,
-                                                delay: i * 0.2,
-                                                ease: "back.out(1.7)",
-                                                scrollTrigger: {
-                                                    trigger: el,
-                                                    start: "top 80%",
-                                                    toggleActions: "play none none reverse",
-                                                }
-                                            }
-                                        );
-                                    }
-                                }}
-                                className="group relative">
-                                <motion.div
-                                    className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl blur-xl"
-                                    style={{ background: feature.gradient }}
-                                />
-                                <div className="relative bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 group-hover:border-white/20 transition-all duration-300">
-                                    <motion.div
-                                        animate={{ rotate: [0, 5, -5, 0] }}
-                                        transition={{ repeat: Infinity, duration: 4, ease: "easeInOut", delay: i * 0.5 }}
-                                        className="h-16 w-16 rounded-2xl bg-gradient-to-br flex items-center justify-center mb-6 group-hover:scale-110 transition-transform"
-                                        style={{ background: feature.gradient }}>
-                                        <feature.icon className="h-8 w-8 text-white" />
-                                    </motion.div>
-                                    <h3 className="text-2xl font-bold text-white mb-2">{feature.title}</h3>
-                                    <p className="text-white/50">{feature.desc}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Interactive Demo */}
-                    <div
-                        ref={(el) => {
-                            if (el) {
-                                gsap.fromTo(el,
-                                    { opacity: 0, scale: 0.9, rotationX: 10 },
-                                    {
-                                        opacity: 1,
-                                        scale: 1,
-                                        rotationX: 0,
-                                        duration: 1,
-                                        ease: "power3.out",
-                                        scrollTrigger: {
-                                            trigger: el,
-                                            start: "top 80%",
-                                            toggleActions: "play none none reverse",
-                                        }
-                                    }
-                                );
-                            }
-                        }}
-                        className="relative max-w-5xl mx-auto">
-                        {/* Glow effect */}
-                        <motion.div
-                            animate={{
-                                opacity: [0.3, 0.6, 0.3],
-                                scale: [1, 1.1, 1],
-                            }}
-                            transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-                            className="absolute inset-0 bg-gradient-to-r from-accent/20 via-accent/10 to-accent/20 rounded-3xl blur-2xl"
-                        />
-
-                        <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-2xl rounded-3xl p-8 md:p-12 border border-white/10 overflow-hidden">
-                            {/* Animated particles */}
-                            {[...Array(20)].map((_, i) => (
-                                <motion.div
-                                    key={i}
-                                    animate={{
-                                        y: [0, -100, 0],
-                                        opacity: [0, 1, 0],
-                                    }}
-                                    transition={{
-                                        repeat: Infinity,
-                                        duration: 3 + Math.random() * 2,
-                                        delay: Math.random() * 2,
-                                        ease: "easeOut",
-                                    }}
-                                    className="absolute w-1 h-1 bg-accent/50 rounded-full"
-                                    style={{
-                                        left: `${Math.random() * 100}%`,
-                                        top: `${Math.random() * 100}%`,
-                                    }}
-                                />
-                            ))}
-
-                            <div className="grid md:grid-cols-2 gap-8 md:gap-16 items-center relative z-10">
-                                {/* Customer Side */}
-                                <motion.div
-                                    whileHover={{ scale: 1.02 }}
-                                    className="relative group">
-                                    <div className="absolute inset-0 bg-gradient-to-r from-accent/20 to-transparent rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                                    <div className="relative bg-gradient-to-br from-white/15 to-white/5 rounded-2xl p-6 border border-white/10">
-                                        <div className="flex items-center gap-4 mb-6">
-                                            <motion.div
-                                                animate={{ rotate: [0, 360] }}
-                                                transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
-                                                className="h-14 w-14 rounded-full bg-gradient-to-br from-accent/30 to-accent/10 flex items-center justify-center">
-                                                <Smartphone className="h-7 w-7 text-accent" />
-                                            </motion.div>
-                                            <div>
-                                                <h4 className="text-xl font-bold text-white">Customer</h4>
-                                                <p className="text-sm text-white/40">Searching now</p>
-                                            </div>
-                                        </div>
-                                        <div className="space-y-4">
-                                            <motion.div
-                                                animate={{ x: [0, 5, 0] }}
-                                                transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                                                className="flex items-center gap-3 p-4 rounded-xl bg-white/5 border border-white/10">
-                                                <Search className="h-5 w-5 text-white/30" />
-                                                <span className="text-white/50 text-sm">Find delivery near me...</span>
-                                            </motion.div>
-                                            <motion.div
-                                                animate={{
-                                                    scale: [1, 1.02, 1],
-                                                    boxShadow: [
-                                                        "0 0 0 rgba(120,255,120,0)",
-                                                        "0 0 20px rgba(120,255,120,0.3)",
-                                                        "0 0 0 rgba(120,255,120,0)",
-                                                    ],
-                                                }}
-                                                transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                                                className="flex items-center gap-3 p-4 rounded-xl bg-accent/10 border border-accent/30">
-                                                <Star className="h-5 w-5 text-accent" />
-                                                <div className="flex-1">
-                                                    <div className="text-white font-medium">Your Business</div>
-                                                    <div className="text-accent/70 text-xs">4.9 ⭐ • Available</div>
-                                                </div>
-                                                <motion.div
-                                                    animate={{ scale: [1, 1.2, 1] }}
-                                                    transition={{ repeat: Infinity, duration: 1.5 }}
-                                                    className="h-2 w-2 rounded-full bg-accent"
-                                                />
-                                            </motion.div>
-                                        </div>
-                                    </div>
-                                </motion.div>
-
-                                {/* Animated Connection */}
-                                <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center justify-center">
-                                    <motion.div
-                                        animate={{ x: [-10, 10, -10] }}
-                                        transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                                        className="flex items-center gap-2">
-                                        {[...Array(3)].map((_, i) => (
-                                            <motion.div
-                                                key={i}
-                                                animate={{
-                                                    scale: [1, 1.5, 1],
-                                                    opacity: [0.5, 1, 0.5],
-                                                }}
-                                                transition={{
-                                                    repeat: Infinity,
-                                                    duration: 1.5,
-                                                    delay: i * 0.2,
-                                                    ease: "easeInOut",
-                                                }}
-                                                className="w-2 h-2 rounded-full bg-accent"
-                                            />
-                                        ))}
-                                    </motion.div>
-                                </div>
-
-                                {/* Business Side */}
-                                <motion.div
-                                    whileHover={{ scale: 1.02 }}
-                                    className="relative group">
-                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent to-accent/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                                    <div className="relative bg-gradient-to-br from-accent/15 to-accent/5 rounded-2xl p-6 border border-accent/30">
-                                        <div className="flex items-center gap-4 mb-6">
-                                            <motion.div
-                                                animate={{ rotate: [0, -360] }}
-                                                transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
-                                                className="h-14 w-14 rounded-full bg-gradient-to-br from-accent/40 to-accent/20 flex items-center justify-center">
-                                                <LayoutDashboard className="h-7 w-7 text-accent" />
-                                            </motion.div>
-                                            <div>
-                                                <h4 className="text-xl font-bold text-white">Your Dashboard</h4>
-                                                <p className="text-sm text-accent/70">Receiving orders</p>
-                                            </div>
-                                        </div>
-                                        <div className="space-y-4">
-                                            <motion.div
-                                                animate={{
-                                                    y: [0, -5, 0],
-                                                    backgroundColor: ["rgba(120,255,120,0.1)", "rgba(120,255,120,0.2)", "rgba(120,255,120,0.1)"],
-                                                }}
-                                                transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                                                className="flex items-center gap-3 p-4 rounded-xl bg-accent/20 border border-accent/40">
-                                                <motion.div
-                                                    animate={{ scale: [1, 1.3, 1] }}
-                                                    transition={{ repeat: Infinity, duration: 1 }}
-                                                    className="h-3 w-3 rounded-full bg-green-400"
-                                                />
-                                                <div className="flex-1">
-                                                    <div className="text-white font-medium">New Order!</div>
-                                                    <div className="text-white/50 text-xs">Lagos → Ikeja • ₦2,500</div>
-                                                </div>
-                                                <Zap className="h-5 w-5 text-accent" />
-                                            </motion.div>
-                                            <div className="flex items-center gap-3 p-4 rounded-xl bg-white/5 border border-white/10">
-                                                <div className="h-3 w-3 rounded-full bg-white/30" />
-                                                <div className="flex-1">
-                                                    <div className="text-white/70 font-medium">Order #2846</div>
-                                                    <div className="text-white/40 text-xs">In Progress</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* CTA */}
-                    <div
-                        ref={(el) => {
-                            if (el) {
-                                gsap.fromTo(el,
-                                    { opacity: 0, y: 30 },
-                                    {
-                                        opacity: 1,
-                                        y: 0,
-                                        duration: 0.8,
-                                        delay: 0.4,
-                                        ease: "power3.out",
-                                        scrollTrigger: {
-                                            trigger: el,
-                                            start: "top 85%",
-                                            toggleActions: "play none none reverse",
-                                        }
-                                    }
-                                );
-                            }
-                        }}
-                        className="text-center mt-20">
-                        <motion.div
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            className="inline-block relative">
-                            <motion.div
-                                animate={{
-                                    boxShadow: [
-                                        "0 0 0 rgba(120,255,120,0)",
-                                        "0 0 30px rgba(120,255,120,0.4)",
-                                        "0 0 0 rgba(120,255,120,0)",
-                                    ],
-                                }}
-                                transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                                className="absolute inset-0 bg-accent rounded-full blur-xl"
-                            />
-                            <a
-                                href={WAITLIST_URL}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="relative inline-flex items-center gap-3 px-10 py-4 bg-accent text-primary font-bold text-lg rounded-full hover:bg-accent/90 transition-colors">
-                                Join the Marketplace
-                                <motion.div
-                                    animate={{ x: [0, 5, 0] }}
-                                    transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}>
-                                    <ArrowRight className="h-5 w-5" />
-                                </motion.div>
-                            </a>
-                        </motion.div>
-                    </div>
-                </div>
-            </section>
-
-            {/* ── HOW ESCROW PROTECTS YOU ─────────────────────────────────── */}
-            <section className="py-24 bg-muted/30 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-accent/5 to-transparent" />
-                <div className="container mx-auto px-6 max-w-7xl relative z-10">
-                    <AnimatedSection className="text-center mb-16">
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.6 }}
-                            className="inline-block mb-4"
-                        >
-                            <Badge className="gap-2 bg-accent/15 text-accent border-accent/35 backdrop-blur-sm px-4 py-2">
-                                <Shield className="h-4 w-4" />
-                                How Escrow Protects You
-                            </Badge>
-                        </motion.div>
-                        <h2 className="text-4xl md:text-5xl font-black text-balance mb-4">
-                            Never argue over a payment again
-                        </h2>
-                        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                            You get paid for every completed delivery, guaranteed.
-                        </p>
-                    </AnimatedSection>
-
-                    <motion.div
-                        initial="hidden"
-                        whileInView="visible"
-                        viewport={{ once: true, margin: "-80px" }}
-                        variants={staggerContainer}
-                        className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto relative">
-                        {[
-                            {
-                                step: "Step 1",
-                                title: "Customer pays online",
-                                description: "Funds locked safely in Drova Escrow",
-                                icon: <CreditCard className="h-8 w-8" />,
-                                gradient: "from-blue-500/10 to-blue-600/5",
-                            },
-                            {
-                                step: "Step 2",
-                                title: "Rider delivers package",
-                                description: "Rider uploads PIN after delivery",
-                                icon: <Package className="h-8 w-8" />,
-                                gradient: "from-purple-500/10 to-purple-600/5",
-                            },
-                            {
-                                step: "Step 3",
-                                title: "Funds released",
-                                description: "Money sent to your wallet after 24 hours without dispute",
-                                icon: <Shield className="h-8 w-8" />,
-                                gradient: "from-green-500/10 to-green-600/5",
-                            },
-                        ].map((item, index) => (
-                            <motion.div
-                                key={item.step}
-                                variants={fadeInUp}
-                                whileHover={{ y: -8, scale: 1.02 }}
-                                transition={{ type: "spring", stiffness: 300 }}
-                                className="relative"
-                            >
-                                <Card className={`h-full bg-gradient-to-br ${item.gradient} backdrop-blur-sm border-2 border-border hover:border-accent/50 transition-all duration-300 relative overflow-hidden group`}>
-                                    <motion.div
-                                        className="absolute top-0 right-0 w-32 h-32 bg-accent/10 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                                        animate={{
-                                            scale: [1, 1.2, 1],
-                                            opacity: [0.3, 0.5, 0.3],
-                                        }}
-                                        transition={{
-                                            duration: 3,
-                                            repeat: Infinity,
-                                            ease: "easeInOut",
-                                        }}
-                                    />
-                                    <CardContent className="p-8 relative">
-                                        <div className="flex items-center justify-between mb-6">
-                                            <motion.div
-                                                className="text-sm font-semibold text-accent"
-                                                whileHover={{ scale: 1.1 }}
-                                            >
-                                                {item.step}
-                                            </motion.div>
-                                            <motion.div
-                                                className="h-12 w-12 rounded-full bg-gradient-to-br from-accent/20 to-accent/30 flex items-center justify-center text-accent group-hover:scale-110 transition-transform duration-300"
-                                                whileHover={{ rotate: 360 }}
-                                                transition={{ duration: 0.6 }}
-                                            >
-                                                {item.icon}
-                                            </motion.div>
-                                        </div>
-                                        <h3 className="text-xl font-bold mb-3 group-hover:text-accent transition-colors">{item.title}</h3>
-                                        <p className="text-muted-foreground">{item.description}</p>
-                                        {index < 2 && (
-                                            <motion.div
-                                                className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-10"
-                                                animate={{ x: [0, 8, 0] }}
-                                                transition={{
-                                                    duration: 1.5,
-                                                    repeat: Infinity,
-                                                    ease: "easeInOut",
-                                                }}
-                                            >
-                                                <ArrowRight className="h-6 w-6 text-accent" />
-                                            </motion.div>
-                                        )}
-                                    </CardContent>
-                                </Card>
-                            </motion.div>
-                        ))}
-                    </motion.div>
-
-                    <AnimatedSection className="text-center mt-12">
-                        <motion.div
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            className="inline-flex items-center gap-2 px-6 py-3 bg-accent/10 rounded-full border border-accent/20 cursor-pointer"
-                        >
-                            <motion.div
-                                animate={{ rotate: 360 }}
-                                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                            >
-                                <CheckCircle className="h-5 w-5 text-accent" />
-                            </motion.div>
-                            <span className="text-accent font-semibold">Zero payment disputes. Guaranteed payments.</span>
-                        </motion.div>
-                    </AnimatedSection>
-                </div>
-            </section>
-
-            {/* ── PRICING ──────────────────────────────────────────────────── */}
-            <section className="py-24 bg-background">
-                <div className="container mx-auto px-6 max-w-7xl">
-                    <AnimatedSection className="text-center mb-16">
-                        <p className="text-accent font-semibold mb-3 uppercase tracking-widest text-xs">Pricing</p>
-                        <h2 className="text-4xl md:text-5xl font-black text-balance mb-4">
-                            Start free,
-                            <br />
-                            scale as you grow
-                        </h2>
-                        <p className="text-lg text-muted-foreground">No upfront costs. No hidden fees. Upgrade when you're ready.</p>
-                    </AnimatedSection>
-
-                    <motion.div
-                        initial="hidden"
-                        whileInView="visible"
-                        viewport={{ once: true, margin: "-80px" }}
-                        variants={staggerContainer}
-                        className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto items-stretch">
-                        {[
-                            {
-                                name: "Starter",
-                                price: "Free",
-                                period: "forever",
-                                description: "Perfect for getting started",
-                                highlight: false,
-                                features: [
-                                    "Up to 5 riders",
-                                    "100 orders / month",
-                                    "2.5% platform commission",
-                                    "Subdomain storefront",
-                                    "Basic analytics",
-                                    "Weekly payouts",
-                                    "Email support",
-                                ],
-                                cta: "Start for Free",
-                            },
-                            {
-                                name: "Professional",
-                                price: "₦15,000",
-                                period: "per month",
-                                description: "For growing courier companies",
-                                highlight: true,
-                                features: [
-                                    "Up to 25 riders",
-                                    "2,000 orders / month",
-                                    "2.5% platform commission",
-                                    "Subdomain + custom domain",
-                                    "Advanced analytics",
-                                    "Daily payouts",
-                                    "Priority email support",
-                                    "WhatsApp integration",
-                                ],
-                                cta: "Join Waitlist",
-                            },
-                            {
-                                name: "Enterprise",
-                                price: "₦45,000",
-                                period: "per month",
-                                description: "For established fleets",
-                                highlight: false,
-                                features: [
-                                    "Unlimited riders",
-                                    "Unlimited orders",
-                                    "2.5% platform commission",
-                                    "Subdomain + custom domain",
-                                    "Full analytics + data export",
-                                    "Real-time payouts",
-                                    "Dedicated account manager",
-                                    "API access",
-                                    "WhatsApp integration",
-                                ],
-                                cta: "Join Waitlist",
-                            },
-                        ].map((plan) => (
-                            <motion.div key={plan.name} variants={scaleIn} className="h-full">
-                                <motion.div whileHover={{ y: -5, transition: { duration: 0.22 } }} className="h-full">
-                                    <Card
-                                        className={`relative overflow-hidden flex flex-col h-full ${
-                                            plan.highlight ? "border-2 border-accent shadow-xl shadow-accent/10" : "border"
-                                        }`}>
-                                        {plan.highlight && (
-                                            <div className="absolute top-0 inset-x-0 h-1 bg-linear-to-r from-accent via-accent/80 to-accent" />
-                                        )}
-                                        <CardContent className="p-8 flex flex-col gap-6 h-full">
-                                            <div>
-                                                {plan.highlight && (
-                                                    <Badge className="mb-3 bg-accent/15 text-accent border-accent/35">Most Popular</Badge>
-                                                )}
-                                                <h3 className="text-lg font-bold">{plan.name}</h3>
-                                                <p className="text-sm text-muted-foreground">{plan.description}</p>
-                                            </div>
-                                            <div>
-                                                <span className="text-4xl font-black">{plan.price}</span>
-                                                <span className="text-muted-foreground text-sm ml-2">{plan.period}</span>
-                                            </div>
-                                            <ul className="space-y-2.5 flex-1">
-                                                {plan.features.map((f) => (
-                                                    <li key={f} className="flex items-center gap-2.5 text-sm">
-                                                        <CheckCircle
-                                                            className={`h-4 w-4 flex-shrink-0 ${plan.highlight ? "text-accent" : "text-primary"}`}
-                                                        />
-                                                        <span>{f}</span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                            <a
-                                                href={WAITLIST_URL}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                className={`${buttonVariants({
-                                                    variant: plan.highlight ? "default" : "outline",
-                                                })} w-full mt-auto ${plan.highlight ? "bg-accent! text-primary! border-0! hover:opacity-90!" : ""}`}>
-                                                {plan.cta}
-                                            </a>
-                                        </CardContent>
-                                    </Card>
-                                </motion.div>
-                            </motion.div>
-                        ))}
-                    </motion.div>
-                </div>
-            </section>
-
-            {/* ── FINAL CTA ────────────────────────────────────────────────── */}
-            <section className="py-32 bg-background relative overflow-hidden">
-                {/* Radial glow */}
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_50%,oklch(0.72_0.18_137/0.06),transparent)]" />
-
-                <div className="relative container mx-auto px-6 max-w-7xl text-center">
-                    <AnimatedSection className="max-w-3xl mx-auto space-y-7">
-                        <Badge className="bg-primary/8 text-primary border-primary/18">Now Accepting Early Access</Badge>
-                        <h2 className="text-4xl md:text-6xl font-black text-balance">
-                            Be the first to
-                            <br />
-                            <span className="text-accent">transform your fleet</span>
-                        </h2>
-                        <p className="text-xl text-muted-foreground leading-relaxed">
-                            Drova is in beta. Join the waitlist to get early access, priority onboarding, and locked-in founding pricing.
-                        </p>
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center pt-2">
-                            <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
-                                <a
-                                    href={WAITLIST_URL}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className={`${buttonVariants({ size: "lg" })} gap-2 text-base px-10 font-semibold`}>
-                                    Join the Waitlist
-                                    <ArrowRight className="h-4 w-4" />
-                                </a>
-                            </motion.div>
-                        </div>
-                    </AnimatedSection>
-                </div>
-            </section>
-
-            {/* ── FOOTER ───────────────────────────────────────────────────── */}
-            <footer className="border-t bg-primary text-white py-12">
-                <div className="container mx-auto px-6 max-w-7xl">
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                        <div className="flex items-center gap-3">
-                            <img src="/logo.png" alt="Drova" className="h-8 brightness-0 invert" />
-                            <span className="text-white/40 text-sm">Delivery-as-a-Service</span>
-                        </div>
-                        <nav className="flex items-center gap-6 text-sm text-white/55">
-                            <a href="#services" className="hover:text-accent transition-colors">
-                                Services
-                            </a>
-                            <a href="#how-it-works" className="hover:text-accent transition-colors">
-                                How It Works
-                            </a>
-                            <a href="#marketplace" className="hover:text-accent transition-colors">
-                                Marketplace
-                            </a>
-                            <a href="mailto:product@drova.ng" className="hover:text-accent transition-colors">
-                                Contact
-                            </a>
-                        </nav>
-                        <p className="text-sm text-white/35">© 2026 Drova. All rights reserved.</p>
-                    </div>
-                </div>
-            </footer>
+        <main className="flex flex-col overflow-x-clip">
+            <Hero />
+            <Problem />
+            <Product />
+            <Sides />
+            <Customers />
+            <HowItWorks />
+            <Riders />
+            <PricingEngine />
+            <Payments />
+            <Controls />
+            <Plans />
+            <Faq />
+            <FinalCta />
+            <Footer />
         </main>
     );
 }
