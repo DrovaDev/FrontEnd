@@ -111,7 +111,7 @@ function Hero() {
                         The operating system for Nigeria&rsquo;s <span className="bg-gradient-to-r from-lime to-gold bg-clip-text text-transparent">delivery businesses.</span>
                     </motion.h1>
                     <motion.p variants={fadeUp} className="mt-5 max-w-xl text-base leading-relaxed text-white/65 md:mt-7 md:text-xl">
-                        Drova is Delivery-as-a-Service for courier companies: a storefront customers can book from, automatic rider dispatch, escrow-protected payments and live tracking<span className="hidden md:inline"> — so you can stop running deliveries from WhatsApp and start running a business</span>.
+                        Drova transforms your courier company from a manual WhatsApp operation into a scalable business.<span className="hidden md:inline"> It provides an all-in-one delivery-as-a-service platform featuring a customer-facing booking storefront, automated rider dispatch, secure escrow payments, and real-time tracking.</span>
                     </motion.p>
                     <motion.div variants={fadeUp} className="mt-8 grid grid-cols-[1.25fr_1fr] gap-2.5 sm:flex sm:gap-3 md:mt-10">
                         <PrimaryCta className="px-4 text-[15px] md:px-7 md:text-base" />
@@ -183,7 +183,7 @@ function Problem() {
                             Delivery businesses deserve better than <span className="text-emerald">a group chat.</span>
                         </>
                     }
-                    subtitle="Most courier companies in Nigeria still run on WhatsApp, cash and memory. It works — until you want to grow."
+                    subtitle="WhatsApp, cash, and memory can run a courier business. But they can’t scale it."
                 />
 
                 <div className="mt-10 md:mt-16">
@@ -209,7 +209,7 @@ function Product() {
                             See Drova <span className="text-lime">in action.</span>
                         </>
                     }
-                    subtitle="This is the app your team runs the business from, and the pages your customers book and track on."
+                    subtitle="This is the app that powers your business, and the platform where your customers book and track."
                 />
                 <div className="mt-8 md:mt-14">
                     <ProductTour />
@@ -254,7 +254,7 @@ function Sides() {
                             Every side of the delivery, <span className="text-emerald">connected.</span>
                         </>
                     }
-                    subtitle="Your team, your riders and your customers each get the tool they need — and they all see the same order, in real time."
+                    subtitle="Perfect synchronization, from checkout to doorstep, keeping everyone on the same page."
                 />
                 <Stagger className="rail mt-8 grid gap-6 md:mt-16 md:grid-cols-3">
                     {SIDES.map((s) => (
