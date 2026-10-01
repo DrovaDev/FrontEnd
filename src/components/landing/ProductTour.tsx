@@ -15,7 +15,7 @@ const TABS: { id: string; icon: typeof Store; label: string; url: string; title:
         label: "Dashboard",
         url: `${APP_HOST}/dashboard`,
         title: "Your whole operation on one screen",
-        text: "Wallet balance, today's orders, every online rider on a live map — the moment you log in.",
+        text: "Your entire operation, visible in one click.",
         Screen: DashboardScreen,
     },
     {
@@ -24,7 +24,7 @@ const TABS: { id: string; icon: typeof Store; label: string; url: string; title:
         label: "Orders",
         url: `${APP_HOST}/dashboard/orders`,
         title: "Every order, from booking to doorstep",
-        text: "Filter by status, see who's carrying what, and step in to reassign when you need to.",
+        text: "Take complete control of your fleet with smart routing updates.",
         Screen: OrdersScreen,
     },
     {
