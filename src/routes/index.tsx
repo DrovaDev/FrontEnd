@@ -849,7 +849,7 @@ function FinalCta() {
 
 const FOOTER_LINKS: [string, [string, string][]][] = [
     ["Product", [["Tour", "#product"], ["How it works", "#how-it-works"], ["Payments", "#payments"], ["Pricing", "#pricing"]]],
-    ["For", [["Businesses", "#platform"], ["Customers", "#customers"], ["Riders", "#riders"]]],
+    ["For", [["Businesses", "#platform"], ["Customers", "#customers"], ["Riders", "#riders"], ["Track a package", "/track"]]],
     ["Company", [["FAQ", "#faq"], ["Request a demo", "#demo"], ["Contact", "mailto:product@drova.ng"], ["Join the waitlist", WAITLIST_URL]]],
 ];
 
