@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
-import { ArrowRight, Menu, X } from "lucide-react";
+import { ArrowRight, Menu, PackageSearch, X } from "lucide-react";
+import { useLocation } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { useScrollDirection } from "@/hooks/useScrollDirection";
 import { WAITLIST_URL } from "@/components/landing/primitives";
@@ -47,9 +48,15 @@ export default function Header() {
 
     const visible = open || scrollDirection === "up" || !scrolled;
 
+    // Section links are anchors on the home page; from any other page they lead back to it.
+    const onHome = useLocation({ select: (l) => l.pathname }) === "/";
+    const sectionHref = (href: string) => (onHome ? href : `/${href}`);
+
     // Close the mobile menu first, then scroll — the link unmounts with the menu,
     // so the browser's own anchor navigation can't be relied on.
     const goTo = (e: React.MouseEvent, href: string) => {
+        setOpen(false);
+        if (!onHome) return; // let the browser load /#section
         e.preventDefault();
         setOpen(false);
         document.querySelector(href)?.scrollIntoView({ behavior: "smooth" });
@@ -68,7 +75,7 @@ export default function Header() {
                     scrolled || open ? "border-white/10 bg-forest/90 shadow-xl shadow-black/20 backdrop-blur-xl" : "border-white/[0.07] bg-white/[0.04] backdrop-blur-md",
                 )}>
                 <div className="flex h-14 items-center justify-between pl-5 pr-2">
-                    <a href="#" aria-label="Drova home" onClick={() => setOpen(false)}>
+                    <a href={onHome ? "#" : "/"} aria-label="Drova home" onClick={() => setOpen(false)}>
                         <Logo className="bg-lime" height={26} />
                     </a>
 
@@ -76,7 +83,7 @@ export default function Header() {
                         {LINKS.map((link) => (
                             <a
                                 key={link.href}
-                                href={link.href}
+                                href={sectionHref(link.href)}
                                 className={cn(
                                     "relative rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors",
                                     active === link.href ? "text-white" : "text-white/60 hover:text-white",
@@ -124,12 +131,18 @@ export default function Header() {
                                 {LINKS.map((link) => (
                                     <a
                                         key={link.href}
-                                        href={link.href}
+                                        href={sectionHref(link.href)}
                                         onClick={(e) => goTo(e, link.href)}
                                         className={cn("rounded-2xl px-4 py-3 text-base font-medium", active === link.href ? "bg-white/10 text-white" : "text-white/70")}>
                                         {link.label}
                                     </a>
                                 ))}
+                                <a
+                                    href="/track"
+                                    onClick={() => setOpen(false)}
+                                    className="flex items-center gap-2 rounded-2xl px-4 py-3 text-base font-medium text-white/70">
+                                    <PackageSearch className="h-4 w-4" /> Track a package
+                                </a>
                                 <a
                                     href="#demo"
                                     onClick={() => setOpen(false)}

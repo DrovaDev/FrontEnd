@@ -1,4 +1,14 @@
 {
     "buildCommand": "pnpm run build",
-    "framework": null
+    "framework": null,
+    "rewrites": [
+        {
+            "source": "/api/v1/order/track/:code",
+            "destination": "https://backend-v2-p8f0.onrender.com/api/v1/order/track/:code"
+        },
+        {
+            "source": "/((?!api/).*)",
+            "destination": "/index.html"
+        }
+    ]
 }
