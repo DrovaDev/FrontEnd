@@ -615,31 +615,62 @@ function Customers() {
 
 // ─── Plans ────────────────────────────────────────────────────────────────────
 
-const PLANS = [
+// Prices follow the Drova Subscription Engine spec ($40 / $100), billed in naira at
+// ₦1,347 per $1 (official rate, 7 Nov 2026), rounded to the nearest ₦1,000.
+type Plan = {
+    name: string;
+    price: string;
+    period: string;
+    usd?: string;
+    description: string;
+    highlight?: boolean;
+    /** Label above the feature list, e.g. "Everything in Pickup, plus". */
+    includes: string;
+    features: string[];
+    cta: string;
+    href?: string;
+};
+
+// Each card lists only what it adds over the tier before it, so the cards stay short.
+const PLANS: Plan[] = [
     {
-        name: "Starter",
+        name: "Pickup",
         price: "Free",
         period: "forever",
-        description: "Perfect for getting started",
-        features: ["Up to 5 riders", "100 orders / month", "Storefront & live tracking", "Escrow payments", "Basic analytics", "Weekly payouts", "Email support"],
+        description: "Start delivering today.",
+        includes: "What you get",
+        features: ["Up to 2 riders", "100 orders / month", "Storefront & live tracking", "Escrow payments", "Basic analytics"],
         cta: "Start for free",
     },
     {
-        name: "Professional",
-        price: "₦25,000",
-        period: "per month",
-        description: "For growing courier companies",
+        name: "Dispatch",
+        price: "₦50,000",
+        period: "/ month",
+        // usd: "About $40",
+        description: "Run your dispatch like a pro.",
         highlight: true,
-        features: ["Up to 25 riders", "2,000 orders / month", "Everything in Starter", "Custom domain for your storefront", "Advanced analytics", "Daily payouts", "Priority support", "WhatsApp integration"],
+        includes: "Everything in Pickup, plus",
+        features: ["Up to 10 riders", "2,000 orders / month", "5 staff seats", "Custom storefront", "Advanced analytics", "Priority support"],
         cta: "Join the waitlist",
     },
     {
-        name: "Enterprise",
-        price: "₦50,000",
-        period: "per month",
-        description: "For established fleets",
-        features: ["Unlimited riders", "Unlimited orders", "Everything in Professional", "Full analytics & data export", "Real-time payouts", "Dedicated account manager", "API access"],
-        cta: "Request a demo",
+        name: "Fleet",
+        price: "₦120,000",
+        period: "/ month",
+        // usd: "About $100",
+        description: "Scale your fleet without limits.",
+        includes: "Everything in Dispatch, plus",
+        features: ["Unlimited riders & orders", "20 staff seats", "Up to 5 branches", "Marketplace ranking boost", "Full data export", "Dedicated account manager"],
+        cta: "Join the waitlist",
+    },
+    {
+        name: "Network",
+        price: "Custom",
+        period: "billed monthly",
+        description: "Your logistics network, your brand.",
+        includes: "Everything in Fleet, plus",
+        features: ["Your own domain", "Unlimited branches", "Custom integrations", "SSO & approval workflows", "SLA & named engineer"],
+        cta: "Talk to sales",
         href: "#demo",
     },
 ];
@@ -647,7 +678,7 @@ const PLANS = [
 function Plans() {
     return (
         <section id="pricing" className="relative overflow-hidden bg-app-bg py-16 md:py-28">
-            <div className="container relative z-10 mx-auto max-w-6xl px-6">
+            <div className="container relative z-10 mx-auto max-w-7xl px-6">
                 <SectionHeading
                     eyebrow="Pricing"
                     title={
@@ -657,25 +688,30 @@ function Plans() {
                     }
                     subtitle="No setup costs and no hidden fees. On every plan, you keep 100% of your delivery fees."
                 />
-                <Stagger className="rail mt-8 grid items-stretch gap-6 md:mt-16 md:grid-cols-3">
+                <Stagger className="rail mt-8 grid items-stretch gap-6 md:mt-16 md:grid-cols-2 lg:grid-cols-4 lg:gap-5">
                     {PLANS.map((p) => (
                         <motion.div
                             key={p.name}
                             variants={fadeUp}
                             whileHover={{ y: -6 }}
                             className={cn(
-                                "relative flex flex-col rounded-[2rem] border p-7 md:p-8",
+                                "relative flex flex-col rounded-[1.75rem] border p-6 lg:p-7",
                                 p.highlight && "order-first md:order-none",
-                                p.highlight ? "border-forest bg-forest text-white shadow-2xl shadow-forest/30 md:-my-4 md:py-12" : "border-app-border bg-white shadow-sm",
+                                p.highlight ? "border-forest bg-forest text-white shadow-2xl shadow-forest/30" : "border-app-border bg-white shadow-sm",
                             )}>
-                            {p.highlight && <span className="absolute -top-3 left-8 rounded-full bg-lime px-3 py-1 text-xs font-bold text-forest">Most popular</span>}
+                            {p.highlight && <span className="absolute -top-3 left-6 rounded-full bg-lime px-3 py-1 text-xs font-bold text-forest lg:left-7">Most popular</span>}
                             <p className={cn("text-lg font-bold", p.highlight ? "text-white" : "text-forest")}>{p.name}</p>
-                            <p className={cn("text-sm", p.highlight ? "text-white/60" : "text-sage")}>{p.description}</p>
-                            <p className="mt-6">
-                                <span className={cn("text-4xl font-bold tracking-tight md:text-5xl", p.highlight ? "text-white" : "text-forest")}>{p.price}</span>
-                                <span className={cn("ml-2 text-sm", p.highlight ? "text-white/60" : "text-sage")}>{p.period}</span>
+                            {/* Two lines reserved on desktop so prices line up when a tagline wraps. */}
+                            <p className={cn("text-sm lg:min-h-10", p.highlight ? "text-white/60" : "text-sage")}>{p.description}</p>
+                            <p className="mt-5 flex flex-wrap items-baseline gap-x-1.5">
+                                <span className={cn("text-[2rem] font-bold leading-tight tracking-tight", p.highlight ? "text-white" : "text-forest")}>{p.price}</span>
+                                <span className={cn("whitespace-nowrap text-sm", p.highlight ? "text-white/60" : "text-sage")}>{p.period}</span>
                             </p>
-                            <ul className="mt-6 flex-1 space-y-3 text-sm md:mt-8">
+                            {/* Always reserve the line so feature lists start at the same height on every card. */}
+                            <p className={cn("h-4 text-xs", p.highlight ? "text-white/50" : "text-sage")}>{p.usd}</p>
+                            <div className={cn("my-5 h-px", p.highlight ? "bg-white/15" : "bg-app-border")} />
+                            <p className={cn("mb-3 text-xs font-semibold uppercase tracking-wide", p.highlight ? "text-lime" : "text-emerald")}>{p.includes}</p>
+                            <ul className="flex-1 space-y-2.5 text-sm">
                                 {p.features.map((f) => (
                                     <FeatureItem key={f} tone={p.highlight ? "dark" : "light"}>
                                         {f}
@@ -686,7 +722,7 @@ function Plans() {
                                 href={p.href ?? WAITLIST_URL}
                                 {...(p.href ? {} : { target: "_blank", rel: "noreferrer" })}
                                 className={cn(
-                                    "mt-10 rounded-full py-3 text-center font-bold transition-colors",
+                                    "mt-7 rounded-full py-3 text-center font-bold transition-colors",
                                     p.highlight ? "bg-lime text-forest hover:bg-lime/90" : "border border-forest/20 text-forest hover:bg-mint",
                                 )}>
                                 {p.cta}

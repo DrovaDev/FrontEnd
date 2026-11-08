@@ -68,7 +68,7 @@ function AppShell({ active, children }: { active: string; children: ReactNode })
                 </nav>
                 <div className="mt-auto rounded-2xl bg-mint p-3">
                     <p className="text-[11px] font-bold text-forest">Swiftline Logistics</p>
-                    <p className="text-[10px] text-sage">Professional plan</p>
+                    <p className="text-[10px] text-sage">Dispatch plan</p>
                 </div>
             </aside>
             <div className="flex min-w-0 flex-1 flex-col">
